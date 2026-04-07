@@ -1,0 +1,9 @@
+[package]
+name = "calico-ebook-reader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+zip = "8.4.0"
+directories = "6.0.0"
+xml = "1.2.1"
