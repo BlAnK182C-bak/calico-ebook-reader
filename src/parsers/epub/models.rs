@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::{File, exists};
 use std::io::{ErrorKind, Read};
 use std::path::{Path, PathBuf};
@@ -5,16 +6,17 @@ use std::thread;
 use xml::reader::EventReader;
 
 use crate::misc::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
-use crate::parsers::epub::extractors::extract_full_path;
+use crate::parsers::epub::content_extractors::extract_full_path;
 
 // structs
 #[derive(Debug)]
 pub(crate) struct RawEpub {
     file_path: String,
-    extracted_directory_path: Option<String>,
+    extracted_directory_path: Option<String>, // The folder in device where the epub is extracted to
     is_validated: bool,
     entry_file_path: Option<String>, // META-INF/container.xml
     rootfile_path: Option<String>,   //content.obf
+    spine_to_mainfest_map: HashMap<String, String>,
 }
 
 // helpers
@@ -61,13 +63,6 @@ impl RawEpub {
         self.is_validated
     }
 
-    pub(super) fn get_entry_point(&self) -> Option<&str> {
-        match &self.entry_file_path {
-            Some(entry) => Some(entry.as_str()),
-            None => None,
-        }
-    }
-
     pub(super) fn get_rootfile_path(&self) -> Option<&str> {
         match &self.rootfile_path {
             Some(value) => Some(value.as_str()),
@@ -75,6 +70,9 @@ impl RawEpub {
         }
     }
 
+    pub(super) fn get_spine_to_manifest_map(&self) -> &HashMap<String, String> {
+        &self.spine_to_mainfest_map
+    }
     //setters
     pub(super) fn set_extracted_directory_path(&mut self, path: &str) {
         self.extracted_directory_path = Some(String::from(path));
@@ -100,7 +98,13 @@ impl RawEpub {
             is_validated: false,
             entry_file_path: None,
             rootfile_path: None,
+            spine_to_mainfest_map: HashMap::new(),
         }
+    }
+
+    pub(super) fn push_to_spine_manifest_map(&mut self, key: &str, value: &str) {
+        self.spine_to_mainfest_map
+            .insert(String::from(key), String::from(value));
     }
 
     // NOTE: using std::io::Error instead of just Error and importing at top level here because XmlEvent throws it's own Error object.

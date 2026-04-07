@@ -1,15 +1,32 @@
 use std::fs::{self, File};
 use std::io::ErrorKind;
+use std::path::PathBuf;
 use std::thread;
-use xml::EventReader;
 use xml::reader::XmlEvent;
+use xml::{EventReader, attribute};
 use zip::ZipArchive;
 
 use super::models::RawEpub;
-use crate::misc::models::{BookFileTypes, BookMetadata, BookSections};
+use crate::misc::models::{BookFileTypes, BookMetadata, BookSection};
 use crate::misc::utils::{get_book_folder_name, get_file_name_from_path};
 
 // helpers
+pub(super) fn extract_attr_value_from_attrs(
+    attributes: &Vec<attribute::OwnedAttribute>,
+    attr_name: &str,
+) -> Result<String, std::io::Error> {
+    attributes
+        .iter()
+        .find(|attr| attr.name.local_name == attr_name)
+        .map(|attr| attr.value.clone())
+        .ok_or_else(|| {
+            std::io::Error::other(format!(
+                "extract_attr_value_from_attrs: Not found attribute: {}",
+                attr_name
+            ))
+        })
+}
+
 pub(super) fn extract_full_path(container_xml_parser: EventReader<File>) -> Option<String> {
     container_xml_parser
         .into_iter()
@@ -235,8 +252,132 @@ impl RawEpub {
             ))
         }
     }
+    pub(super) fn map_spine_to_manifest(&mut self) -> Result<(), std::io::Error> {
+        let rf = match self.get_rootfile_path() {
+            Some(rootfile_path) => rootfile_path,
+            None => {
+                return Err(std::io::Error::new(
+                    ErrorKind::NotFound,
+                    "map_spine_to_manifest: Rootfile path not found.",
+                ));
+            }
+        };
 
-    pub(super) fn extract_epub_content(&self) -> BookSections {
-        todo!();
+        let mut spine_ids: Vec<String> = Vec::new();
+        let mut manifest_items: Vec<(String, String)> = Vec::new(); // (id, href)
+        let mut content_obf_parser = EventReader::new(File::open(&rf)?);
+
+        let mut is_inside_spine = false;
+        let mut is_inside_manifest = false;
+
+        loop {
+            match content_obf_parser.next() {
+                Ok(XmlEvent::StartElement { ref name, .. }) if name.local_name == "spine" => {
+                    is_inside_spine = true;
+                }
+                Ok(XmlEvent::EndElement { ref name }) if name.local_name == "spine" => {
+                    is_inside_spine = false;
+                }
+                Ok(XmlEvent::StartElement { ref name, .. }) if name.local_name == "manifest" => {
+                    is_inside_manifest = true;
+                }
+                Ok(XmlEvent::EndElement { ref name }) if name.local_name == "manifest" => {
+                    is_inside_manifest = false;
+                }
+                Ok(XmlEvent::StartElement {
+                    ref name,
+                    ref attributes,
+                    ..
+                }) if is_inside_spine && name.local_name == "itemref" => {
+                    if let Ok(idref) = extract_attr_value_from_attrs(attributes, "idref") {
+                        spine_ids.push(idref);
+                    }
+                }
+                Ok(XmlEvent::StartElement {
+                    ref name,
+                    ref attributes,
+                    ..
+                }) if is_inside_manifest && name.local_name == "item" => {
+                    if let (Ok(id), Ok(href)) = (
+                        extract_attr_value_from_attrs(attributes, "id"),
+                        extract_attr_value_from_attrs(attributes, "href"),
+                    ) {
+                        manifest_items.push((id, href));
+                    }
+                }
+                Ok(XmlEvent::EndDocument) => break,
+                _ => {}
+            }
+        }
+
+        for (id, href) in manifest_items {
+            if spine_ids.contains(&id) {
+                self.push_to_spine_manifest_map(id.as_str(), href.as_str());
+            }
+        }
+
+        Ok(())
+    }
+
+    pub(super) fn extract_epub_content(&mut self) -> Result<Vec<BookSection>, std::io::Error> {
+        if self.get_is_validated() {
+            let mut all_book_sections: Vec<BookSection> = Vec::new();
+            self.map_spine_to_manifest()?;
+            for (spine_id, path_to_file) in self.get_spine_to_manifest_map() {
+                let mut path = match self.get_rootfile_path() {
+                    Some(rootfile_path) => PathBuf::from(rootfile_path)
+                        .parent()
+                        .map(|p| p.to_path_buf())
+                        .ok_or_else(|| {
+                            std::io::Error::other(
+                                "extract_epub_content: Could not get parent directory of rootfile",
+                            )
+                        })?,
+                    None => {
+                        return Err(std::io::Error::other(
+                            "extract_epub_content: No extracted directory path.",
+                        ));
+                    }
+                };
+
+                path.push(path_to_file);
+                let mut section_parser = EventReader::new(File::open(&path).map_err(|err| {
+                    std::io::Error::other(format!("Failed to open file: {:?}: {}", path, err))
+                })?);
+                let mut section_content = String::new();
+                let mut is_inside_body = false;
+                loop {
+                    match section_parser.next() {
+                        Ok(XmlEvent::StartElement { name, .. }) if name.local_name == "body" => {
+                            is_inside_body = true;
+                        }
+
+                        Ok(XmlEvent::EndElement { name }) if name.local_name == "body" => {
+                            break;
+                        }
+
+                        Ok(XmlEvent::Characters(text)) if is_inside_body => {
+                            section_content.push_str(&text);
+                        }
+
+                        Ok(XmlEvent::EndElement { .. }) if is_inside_body => {
+                            section_content.push_str("\n");
+                        }
+
+                        Ok(XmlEvent::EndDocument) => {
+                            break;
+                        }
+                        _ => {}
+                    }
+                }
+                let section = BookSection::new(String::from(spine_id), None, section_content);
+                all_book_sections.push(section);
+            }
+            Ok(all_book_sections)
+        } else {
+            return Err(std::io::Error::other(
+                "extract_epub_content: This epub is not validated.",
+            ));
+        }
     }
 }
