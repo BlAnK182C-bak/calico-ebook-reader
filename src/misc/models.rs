@@ -15,7 +15,8 @@ pub(crate) struct BookMetadata {
     rights: Option<String>,
 }
 
-pub(crate) struct BookSections {
+#[derive(Debug)]
+pub(crate) struct BookSection {
     id: String,
     name: Option<String>,
     content: String,
@@ -24,7 +25,7 @@ pub(crate) struct BookSections {
 pub(crate) struct Book {
     metadata: BookMetadata,
     file_type: BookFileTypes,
-    content: Vec<BookSections>,
+    content: Vec<BookSection>,
 }
 
 impl BookMetadata {
@@ -50,5 +51,11 @@ impl BookMetadata {
             publisher,
             rights,
         }
+    }
+}
+
+impl BookSection {
+    pub(crate) fn new(id: String, name: Option<String>, content: String) -> Self {
+        Self { id, name, content }
     }
 }

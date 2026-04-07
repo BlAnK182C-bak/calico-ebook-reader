@@ -1,4 +1,4 @@
-pub(super) mod extractors;
+pub(super) mod content_extractors;
 pub(crate) mod models;
 
 use models::RawEpub;
@@ -8,8 +8,8 @@ pub(crate) fn epub_parse(file_path: &str) -> Result<(), Box<dyn std::error::Erro
     new_epub.extract_epub_file()?;
     new_epub.validate()?;
     new_epub.init()?;
+    let _m = new_epub.extract_epub_metadata()?;
+    let _sections = new_epub.extract_epub_content()?;
     println!("{:#?}", new_epub);
-    let m = new_epub.extract_epub_metadata()?;
-    println!("{:#?}", m);
     Ok(())
 }
