@@ -14,6 +14,7 @@ pub(crate) fn get_book_folder_name(
             BookFileTypes::EpubFileType => {
                 Ok(EPUB_DIR_PATH.join(Path::new(file_name_without_extension)))
             }
+            BookFileTypes::UnknownFileType => Err("get_book_folder_name: Unknown file types"),
         },
         None => Err("get_book_folder_name: This file has a blank name"),
     }

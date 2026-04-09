@@ -1,5 +1,6 @@
 pub(crate) enum BookFileTypes {
     EpubFileType,
+    UnknownFileType,
 }
 
 #[derive(Debug)]
@@ -57,5 +58,28 @@ impl BookMetadata {
 impl BookSection {
     pub(crate) fn new(id: String, name: Option<String>, content: String) -> Self {
         Self { id, name, content }
+    }
+}
+
+impl BookFileTypes {
+    pub(crate) fn new(file_type: &str) -> Self {
+        match file_type {
+            "epub" => BookFileTypes::EpubFileType,
+            _ => BookFileTypes::UnknownFileType,
+        }
+    }
+}
+
+impl Book {
+    pub(crate) fn new(
+        metadata: BookMetadata,
+        file_type: BookFileTypes,
+        content: Vec<BookSection>,
+    ) -> Self {
+        Self {
+            metadata,
+            file_type,
+            content,
+        }
     }
 }
