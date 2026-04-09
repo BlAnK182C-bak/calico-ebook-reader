@@ -26,3 +26,13 @@ pub(crate) fn get_file_name_from_path(file_path: &str) -> Result<&str, &str> {
         None => Err("get_file_name_from_path: Couldn't find a file of this file path"),
     }
 }
+
+pub(crate) fn get_file_type_from_path(file_path: &str) -> Result<&str, &str> {
+    match file_path.split("/").last() {
+        Some(file_name) => match file_name.split(".").last() {
+            Some(file_type) => Ok(file_type),
+            None => Err("get_file_type_from_path: This file doesn't seem to have a type."),
+        },
+        None => Err("get_file_type_from_path: Coduln't find a file of this file path"),
+    }
+}
