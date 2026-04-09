@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::fs::{File, exists};
 use std::io::{ErrorKind, Read};
 use std::path::{Path, PathBuf};
@@ -16,7 +16,7 @@ pub(crate) struct RawEpub {
     is_validated: bool,
     entry_file_path: Option<String>, // META-INF/container.xml
     rootfile_path: Option<String>,   //content.obf
-    spine_to_mainfest_map: HashMap<String, String>,
+    spine_to_mainfest_map: IndexMap<String, String>, // using an IndexMap because insertion order
 }
 
 // helpers
@@ -70,7 +70,7 @@ impl RawEpub {
         }
     }
 
-    pub(super) fn get_spine_to_manifest_map(&self) -> &HashMap<String, String> {
+    pub(super) fn get_spine_to_manifest_map(&self) -> &IndexMap<String, String> {
         &self.spine_to_mainfest_map
     }
     //setters
@@ -98,7 +98,7 @@ impl RawEpub {
             is_validated: false,
             entry_file_path: None,
             rootfile_path: None,
-            spine_to_mainfest_map: HashMap::new(),
+            spine_to_mainfest_map: IndexMap::new(),
         }
     }
 

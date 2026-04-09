@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub(crate) enum BookFileTypes {
     EpubFileType,
     UnknownFileType,
@@ -23,6 +24,7 @@ pub(crate) struct BookSection {
     content: String,
 }
 
+#[derive(Debug)]
 pub(crate) struct Book {
     metadata: BookMetadata,
     file_type: BookFileTypes,
