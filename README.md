@@ -14,7 +14,7 @@ With planned features such as:
 - A plugin system allowing users creative freedom and control over the app
 - TUI mode, for the fellow nerds.
 - Dictionary plug and play via APIs
-- Hardcover integration for tracking websites on [hardcover.app](https://hardcover.app/) - (If goodreads ever decides to actually make a public API again I am more than willing to add this integration too.)
+- Hardcover integration for tracking books on [hardcover.app](https://hardcover.app/) - (If goodreads ever decides to actually make a public API again I am more than willing to add this integration too.)
 
 and more planned...
 
