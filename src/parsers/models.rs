@@ -1,3 +1,7 @@
+pub(crate) trait ParserEngine {
+    fn parse(&mut self) -> Result<Book, Box<dyn std::error::Error>>;
+}
+
 #[derive(Debug)]
 pub(crate) enum BookFileTypes {
     EpubFileType,
