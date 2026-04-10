@@ -21,6 +21,14 @@ pub(crate) struct BookMetadata {
     rights: Option<String>,
 }
 
+pub(crate) struct AtAGlanceReadOnlyMetadata<'a> {
+    title: &'a str,
+    author: &'a str,
+    series: &'a str,
+    isbn: &'a str,
+    publisher: &'a str,
+}
+
 #[derive(Debug)]
 pub(crate) struct BookSection {
     id: String,
@@ -57,6 +65,16 @@ impl BookMetadata {
             isbn,
             publisher,
             rights,
+        }
+    }
+
+    pub(crate) fn get_at_a_glance_metadata(&self) -> AtAGlanceReadOnlyMetadata {
+        AtAGlanceReadOnlyMetadata {
+            title: self.title.as_ref(),
+            author: self.author.as_deref().unwrap_or_default(),
+            series: self.series.as_deref().unwrap_or_default(),
+            isbn: self.isbn.as_deref().unwrap_or_default(),
+            publisher: self.publisher.as_deref().unwrap_or_default(),
         }
     }
 }
