@@ -1,15 +1,17 @@
 use indexmap::IndexMap;
-use std::fs::{self, File, exists};
-use std::io::{ErrorKind, Read};
+use std::fs::{self, File};
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::thread;
 use xml::reader::{EventReader, XmlEvent};
 use zip::ZipArchive;
 
 use super::utils::{extract_attr_value_from_attrs, extract_full_path, extract_metadata_value};
-use crate::misc::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
+use super::utils::{validate_content_obf, validate_meta_inf, validate_mimetype};
+use crate::misc::constants::EPUB_ENTRY_POINT;
 use crate::parsers::models::{BookFileTypes, BookMetadata, BookSection};
 use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
+
 // structs
 #[derive(Debug)]
 pub(crate) struct RawEpub {
@@ -19,32 +21,6 @@ pub(crate) struct RawEpub {
     entry_file_path: Option<String>, // META-INF/container.xml
     rootfile_path: Option<String>,   //content.obf
     spine_to_mainfest_map: IndexMap<String, String>, // using an IndexMap because insertion order
-}
-
-// helpers
-// god help our code readability
-fn validate_mimetype(path: &str) -> Result<bool, std::io::Error> {
-    let mut mimetype_file = File::open(Path::new(path).join("mimetype"))?;
-    let mut mimetype_contents = String::new();
-    mimetype_file.read_to_string(&mut mimetype_contents)?;
-    Ok(mimetype_contents == EPUB_MIMETYPE)
-}
-
-fn validate_meta_inf(path: &str) -> Result<bool, std::io::Error> {
-    let does_entry_point_exist = exists(Path::new(path).join(EPUB_ENTRY_POINT))?;
-    Ok(does_entry_point_exist)
-}
-
-fn validate_content_obf(path: &str) -> Result<bool, std::io::Error> {
-    let container_xml_parser =
-        EventReader::new(File::open(Path::new(path).join(EPUB_ENTRY_POINT))?);
-
-    let full_path = extract_full_path(container_xml_parser);
-
-    match full_path {
-        Some(_) => Ok(true),
-        None => Ok(false),
-    }
 }
 
 // implementations
