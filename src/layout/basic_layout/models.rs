@@ -1,39 +1,38 @@
-use crate::{
-    layout::models::{BookWithAppliedLayout, LayoutEngine, Line},
-    parsers::models::Book,
-};
+use crate::common::models::book::Book;
+use crate::common::models::line::Line;
+use crate::layout::models::{LayoutEngine, LayoutSection};
 
-pub(super) struct BasicLayout {
-    all_lines: Vec<Line>,
-}
-
-impl Line {
-    pub(super) fn new(content: String) -> Self {
-        Self {
-            line_content: content,
-        }
-    }
-
-    pub(super) fn apply_layout(&self, max_width: usize) -> Vec<Self> {
-        self.line_content
-            .chars()
-            .collect::<Vec<char>>()
-            .chunks(max_width)
-            .map(|chunk| Self {
-                line_content: chunk.iter().collect(),
-            })
-            .collect()
-    }
-}
-
-impl LayoutEngine for BasicLayout {
-    fn create_layout(&self, max_width: usize, book: Book) -> BookWithAppliedLayout {
-        todo!();
-    }
+#[derive(Debug)]
+pub(crate) struct BasicLayout {
+    sections: Vec<LayoutSection>,
 }
 
 impl BasicLayout {
-    pub(super) fn new(&mut self, book: Book) -> Self {
-        todo!();
+    pub(crate) fn new(sections: Vec<LayoutSection>) -> Self {
+        Self { sections }
+    }
+}
+impl LayoutEngine for BasicLayout {
+    type OutputLayout = BasicLayout;
+    fn create_layout(max_width: usize, book: Book) -> Self::OutputLayout {
+        let sections = book
+            .get_all_sections() // see below
+            .iter()
+            .map(|section| {
+                let lines: Vec<Line> = section
+                    .get_content()
+                    .split("\n")
+                    .flat_map(|l| {
+                        let chars: Vec<char> = l.chars().collect();
+                        chars
+                            .chunks(max_width)
+                            .map(|chunk| Line::new(chunk.iter().collect::<String>()))
+                            .collect::<Vec<Line>>()
+                    })
+                    .collect();
+                LayoutSection::new(String::from(section.get_id()), lines)
+            })
+            .collect();
+        BasicLayout::new(sections)
     }
 }

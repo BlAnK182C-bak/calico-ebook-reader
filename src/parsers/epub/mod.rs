@@ -1,7 +1,9 @@
 pub(crate) mod models;
 pub(super) mod utils;
 
-use crate::parsers::models::{Book, BookFileTypes, ParserEngine};
+use crate::common::models::book::Book;
+use crate::common::models::filetypes::BookFileTypes;
+use crate::parsers::models::ParserEngine;
 use crate::parsers::utils::get_file_type_from_path;
 use models::RawEpub;
 
