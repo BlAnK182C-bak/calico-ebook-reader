@@ -35,4 +35,8 @@ impl LayoutEngine for BasicLayout {
             .collect();
         BasicLayout::new(sections)
     }
+
+    fn get_all_sections(&self) -> &Vec<LayoutSection> {
+        &self.sections
+    }
 }
