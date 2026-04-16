@@ -1,5 +1,4 @@
 use crate::{
-    common::models::line::Line,
     layout::models::LayoutEngine,
     pagination::models::{Page, PaginationEngine},
 };
@@ -24,4 +23,3 @@ impl<L: LayoutEngine> PaginationEngine<L> for BasicPagination {
         all_pages
     }
 }
-

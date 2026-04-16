@@ -7,7 +7,8 @@ use xml::reader::{EventReader, XmlEvent};
 use zip::ZipArchive;
 
 use super::utils::{extract_attr_value_from_attrs, extract_full_path, extract_metadata_value};
-use crate::common::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
+use super::utils::{validate_content_obf, validate_meta_inf, validate_mimetype};
+use crate::common::constants::EPUB_ENTRY_POINT;
 use crate::common::models::book::{BookMetadata, BookSection};
 use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
