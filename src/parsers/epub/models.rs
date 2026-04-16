@@ -8,8 +8,9 @@ use zip::ZipArchive;
 
 use super::utils::{extract_attr_value_from_attrs, extract_full_path, extract_metadata_value};
 use super::utils::{validate_content_obf, validate_meta_inf, validate_mimetype};
-use crate::misc::constants::EPUB_ENTRY_POINT;
-use crate::parsers::models::{BookFileTypes, BookMetadata, BookSection};
+use crate::common::constants::EPUB_ENTRY_POINT;
+use crate::common::models::book::{BookMetadata, BookSection};
+use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
 
 // structs
@@ -379,9 +380,11 @@ impl RawEpub {
             }
         }
 
-        for (id, href) in manifest_items {
-            if spine_ids.contains(&id) {
-                self.push_to_spine_manifest_map(id.as_str(), href.as_str());
+        let manifest_map: std::collections::HashMap<String, String> =
+            manifest_items.into_iter().collect();
+        for spine_id in &spine_ids {
+            if let Some(href) = manifest_map.get(spine_id) {
+                self.push_to_spine_manifest_map(spine_id.as_str(), href.as_str());
             }
         }
 

@@ -4,7 +4,7 @@ use std::path::Path;
 use xml::reader::XmlEvent;
 use xml::{EventReader, attribute};
 
-use crate::misc::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
+use crate::common::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
 
 pub(super) fn extract_attr_value_from_attrs(
     attributes: &Vec<attribute::OwnedAttribute>,

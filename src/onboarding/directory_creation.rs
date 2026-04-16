@@ -1,6 +1,6 @@
 use std::fs;
 
-use crate::misc::constants::{self, APPLICATION_DATA_PATH, BOOKS_DIR_PATH, EPUB_DIR_PATH};
+use crate::common::constants::{self, APPLICATION_DATA_PATH, BOOKS_DIR_PATH, EPUB_DIR_PATH};
 
 // TODO: Optimization: Make a single helper function for creating directories and call it in the individual functions
 

@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use super::models::BookFileTypes;
-use crate::misc::constants::EPUB_DIR_PATH;
+use crate::common::constants::EPUB_DIR_PATH;
+use crate::common::models::filetypes::BookFileTypes;
 
 // TODO: Bugfix: duplicate file names (from two different folders let's say) - use uuid to generate
 // a unique uuid for each book
