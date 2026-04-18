@@ -1,14 +1,15 @@
 use crate::layout::basic_layout::models::BasicLayout;
-use crate::layout::layoutize;
 use crate::pagination::basic_pagination::models::BasicPagination;
-use crate::pagination::paginate;
 use crate::parsers::models::ParserEngine;
+use crate::rendering::models::{RenderApp, RenderingEngine};
+use crate::rendering::tui_ratatui::models::RatatuiEngine;
 
 pub(crate) mod common;
 pub(crate) mod layout;
 pub(crate) mod onboarding;
 pub(crate) mod pagination;
 pub(crate) mod parsers;
+pub(crate) mod rendering;
 
 fn main() {
     println!("Hello from Calico!");
@@ -28,12 +29,14 @@ fn main() {
     let pj1 = pj1_epub.parse().unwrap();
     let hp1 = hp1_epub.parse().unwrap();
 
-    let layoutized_pj1 = layoutize::<BasicLayout>(pj1, 500);
-    let layoutized_hp1 = layoutize::<BasicLayout>(hp1, 500);
+    // TODO: Code cleaning I don't like that I am calling engine (which is &mut self) as a param due
+    // to generic types.
+    let mut engine = RatatuiEngine;
+    let mut app = <RatatuiEngine as RenderingEngine<BasicLayout, BasicPagination>>::render(
+        &mut engine,
+        pj1.clone(),
+    )
+    .unwrap();
 
-    let paginated_pj1 = paginate::<BasicLayout, BasicPagination>(layoutized_pj1, 10);
-    let paginated_hp1 = paginate::<BasicLayout, BasicPagination>(layoutized_hp1, 10);
-
-    println!("{:#?}", paginated_hp1);
-    println!("{:#?}", paginated_pj1);
+    app.run("The lightning Thief").unwrap();
 }
