@@ -1,5 +1,6 @@
 use crate::common::models::book::Book;
 use crate::common::models::line::Line;
+use crate::layout::basic_layout::utils::wrap_words_to_next_line;
 use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
 
 #[derive(Debug)]
@@ -22,13 +23,7 @@ impl LayoutEngine for BasicLayout {
                 let lines: Vec<Line> = section
                     .get_content()
                     .split("\n")
-                    .flat_map(|l| {
-                        let chars: Vec<char> = l.chars().collect();
-                        chars
-                            .chunks(max_width)
-                            .map(|chunk| Line::new(chunk.iter().collect::<String>()))
-                            .collect::<Vec<Line>>()
-                    })
+                    .flat_map(|l| wrap_words_to_next_line(l, max_width))
                     .collect();
                 LayoutSection::new(String::from(section.get_id()), lines)
             })

@@ -38,5 +38,5 @@ fn main() {
     )
     .unwrap();
 
-    app.run("The lightning Thief").unwrap();
+    app.run(pj1.clone().get_title()).unwrap();
 }

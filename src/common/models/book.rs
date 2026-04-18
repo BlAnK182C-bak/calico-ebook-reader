@@ -1,6 +1,6 @@
 use super::filetypes::BookFileTypes;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct BookMetadata {
     title: String,
     author: Option<String>,
@@ -13,14 +13,14 @@ pub(crate) struct BookMetadata {
     rights: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct BookSection {
     id: String,
     name: Option<String>,
     content: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct Book {
     metadata: BookMetadata,
     file_type: BookFileTypes,
@@ -80,5 +80,9 @@ impl Book {
 
     pub(crate) fn get_all_sections(&self) -> &Vec<BookSection> {
         &self.content
+    }
+
+    pub(crate) fn get_title(&self) -> &String {
+        &self.metadata.title
     }
 }
