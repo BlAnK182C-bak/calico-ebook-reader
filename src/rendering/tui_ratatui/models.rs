@@ -62,9 +62,7 @@ impl RenderApp for RatatuiApp {
                     }
                 }
                 KeyCode::Left | KeyCode::Char('h') => {
-                    if self.current_page - 1 > 0 {
-                        self.current_page -= 1;
-                    }
+                    self.current_page = self.current_page.saturating_sub(1);
                 }
                 KeyCode::Char('q') => self.shutdown()?,
                 _ => {}
@@ -96,8 +94,8 @@ where
         )?;
         let backend = Terminal::new(CrosstermBackend::new(std::io::stdout()))?;
         let backend_size = backend.size()?;
-        let layout = layoutize::<L>(book, backend_size.width as usize);
-        let pages = paginate::<L, P>(layout, backend_size.height as usize);
+        let layout = layoutize::<L>(book, (backend_size.width - 2) as usize);
+        let pages = paginate::<L, P>(layout, (backend_size.height - 2) as usize);
 
         Ok(RatatuiApp {
             backend,
