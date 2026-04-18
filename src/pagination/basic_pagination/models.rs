@@ -1,5 +1,5 @@
 use crate::{
-    layout::models::LayoutEngine,
+    layout::models::{LayoutEngine, LayoutOutput},
     pagination::models::{Page, PaginationEngine},
 };
 
@@ -7,7 +7,7 @@ pub(crate) struct BasicPagination;
 
 impl<L: LayoutEngine> PaginationEngine<L> for BasicPagination {
     type OutputPages = Vec<Page>;
-    fn create_pages(layout: L, page_size: usize) -> Self::OutputPages {
+    fn create_pages(layout: &L::OutputLayout, page_size: usize) -> Self::OutputPages {
         let sections = layout.get_all_sections();
         let mut pg_number: usize = 0;
         let mut all_pages: Vec<Page> = Vec::new();

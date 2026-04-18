@@ -4,8 +4,8 @@ pub(crate) mod basic_pagination;
 pub(crate) mod models;
 
 pub(crate) fn paginate<L: LayoutEngine, E: PaginationEngine<L>>(
-    layout: L,
+    layout: L::OutputLayout,
     page_size: usize,
 ) -> E::OutputPages {
-    E::create_pages(layout, page_size)
+    E::create_pages(&layout, page_size)
 }

@@ -1,6 +1,6 @@
 use crate::common::models::book::Book;
 use crate::common::models::line::Line;
-use crate::layout::models::{LayoutEngine, LayoutSection};
+use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
 
 #[derive(Debug)]
 pub(crate) struct BasicLayout {
@@ -35,7 +35,9 @@ impl LayoutEngine for BasicLayout {
             .collect();
         BasicLayout::new(sections)
     }
+}
 
+impl LayoutOutput for BasicLayout {
     fn get_all_sections(&self) -> &Vec<LayoutSection> {
         &self.sections
     }
