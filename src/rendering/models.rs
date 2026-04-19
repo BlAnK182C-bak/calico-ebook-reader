@@ -15,10 +15,8 @@ pub(crate) trait RenderApp {
     fn shutdown(&mut self) -> Result<(), Self::Error>;
 }
 
-// TODO: Rendering Engine shouldn't be taking Book it should be taking &Book otherwise an
-// unnecessary clone will need to be made which will waste memory
 pub(crate) trait RenderingEngine<L: LayoutEngine, P: PaginationEngine<L>> {
     type OutputRenderer: RenderApp;
     type Error;
-    fn render(&mut self, book: Book) -> Result<Self::OutputRenderer, Self::Error>;
+    fn render(&mut self, book: &Book) -> Result<Self::OutputRenderer, Self::Error>;
 }

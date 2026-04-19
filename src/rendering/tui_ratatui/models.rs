@@ -10,7 +10,7 @@ use ratatui::{
 
 use crate::{
     common::models::book::Book,
-    layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
+    layout::{layoutize, models::LayoutEngine},
     pagination::{
         models::{Page, PaginationEngine},
         paginate,
@@ -85,7 +85,7 @@ where
 {
     type OutputRenderer = RatatuiApp;
     type Error = std::io::Error;
-    fn render(&mut self, book: Book) -> Result<Self::OutputRenderer, Self::Error> {
+    fn render(&mut self, book: &Book) -> Result<Self::OutputRenderer, Self::Error> {
         crossterm::terminal::enable_raw_mode()?;
         let mut stdout = std::io::stdout();
         crossterm::execute!(

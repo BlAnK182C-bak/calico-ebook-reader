@@ -7,7 +7,9 @@ use super::utils::project_dir::extract_project_dir;
 pub(crate) const APPLICATION_NAME: &str = "calico_ebook_reader";
 pub(crate) const APPLICATION_DOMAIN: &str = "com";
 pub(crate) const APPLICATION_AUTHOR: &str = "Abhinav Kumar Singh";
-pub(crate) const SETTINGS_FILENAME: &str = "settings.ini";
+
+// settings based constants
+pub(crate) const SETTINGS_FILENAME: &str = "settings.toml";
 
 // book related constants
 pub(crate) const BOOKS_DIR_NAME: &str = "CER_Books";
@@ -37,13 +39,10 @@ pub(crate) static EPUB_DIR_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 
 pub(crate) static CONFIG_DIR_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
-    let mut path: PathBuf =
-        extract_project_dir(APPLICATION_DOMAIN, APPLICATION_AUTHOR, APPLICATION_NAME)
-            .expect("BOOKS_DIR_PATH: There was an error creating/finding the project directories")
-            .config_dir()
-            .to_path_buf();
-    path.push(PathBuf::from(BOOKS_DIR_NAME));
-    path
+    extract_project_dir(APPLICATION_DOMAIN, APPLICATION_AUTHOR, APPLICATION_NAME)
+        .expect("BOOKS_DIR_PATH: There was an error creating/finding the project directories")
+        .config_dir()
+        .to_path_buf()
 });
 
 pub(crate) static SETTINGS_FILE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
