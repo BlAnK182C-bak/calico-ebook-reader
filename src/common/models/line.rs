@@ -10,7 +10,7 @@ impl Line {
         }
     }
 
-    pub(crate) fn get_line_content(&self) -> &String {
+    pub(crate) fn get_line_content(&self) -> &str {
         &self.line_content
     }
 }

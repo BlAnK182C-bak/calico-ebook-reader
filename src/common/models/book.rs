@@ -79,7 +79,36 @@ impl Book {
         &self.content
     }
 
-    pub(crate) fn get_title(&self) -> &String {
-        &self.metadata.title
+    pub(crate) fn get_title(&self) -> String {
+        format!(
+            "{} by {}",
+            self.metadata.title,
+            self.metadata.author.as_deref().unwrap_or("Unknown Author")
+        )
+    }
+
+    pub(crate) fn get_metadata(&self) -> String {
+        format!(
+            "{} by {}\n\n {}\n\n Series: #{} of {} \n\n Subjects: {}\n\n Rights: {} | {} | {}",
+            self.metadata.title,
+            self.metadata.author.as_deref().unwrap_or("Unknown Author"),
+            self.metadata.description.as_deref().unwrap_or("-"),
+            self.metadata
+                .series_order_number
+                .map(|n| n.to_string())
+                .unwrap_or(String::from("-1")),
+            self.metadata.series.as_deref().unwrap_or("N/A"),
+            self.metadata
+                .subjects
+                .as_ref()
+                .map(|s| s.join(", "))
+                .unwrap_or(String::from("N/A")),
+            self.metadata
+                .publisher
+                .as_deref()
+                .unwrap_or("Unknown Publisher"),
+            self.metadata.rights.as_deref().unwrap_or("Unknown Rights"),
+            self.metadata.isbn.as_deref().unwrap_or("Unknown ISBN")
+        )
     }
 }

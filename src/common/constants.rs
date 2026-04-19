@@ -11,6 +11,10 @@ pub(crate) const APPLICATION_AUTHOR: &str = "Abhinav Kumar Singh";
 // settings based constants
 pub(crate) const SETTINGS_FILENAME: &str = "settings.toml";
 
+// reader constants
+pub(crate) const LIBRARY_LIST_SECTION_NAME: &str = " Library ";
+pub(crate) const LIBRARY_METADATA_SECTION_NAME: &str = " Metadata ";
+
 // book related constants
 pub(crate) const BOOKS_DIR_NAME: &str = "CER_Books";
 pub(crate) const EPUB_DIR_NAME: &str = "CER_Epubs";
