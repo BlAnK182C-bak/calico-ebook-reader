@@ -1,24 +1,32 @@
 use crate::{
-    common::models::book::Book, layout::models::LayoutEngine, pagination::models::PaginationEngine,
+    common::models::book::Book,
+    layout::models::LayoutEngine,
+    pagination::models::{Page, PaginationEngine},
 };
+
+pub(crate) enum AppState {
+    Library,
+    Reading,
+}
 
 pub(crate) trait RenderApp {
     type Error;
-    fn draw(&mut self, book_name: &str) -> Result<(), Self::Error>;
+    fn draw(&mut self) -> Result<(), Self::Error>;
     fn handle_events(&mut self) -> Result<(), Self::Error>;
-    fn run(&mut self, book_name: &str) -> Result<(), Self::Error> {
+    fn run(&mut self) -> Result<(), Self::Error> {
         loop {
-            self.draw(book_name)?;
+            self.draw()?;
             self.handle_events()?;
         }
     }
     fn shutdown(&mut self) -> Result<(), Self::Error>;
 }
 
-// TODO: Rendering Engine shouldn't be taking Book it should be taking &Book otherwise an
-// unnecessary clone will need to be made which will waste memory
-pub(crate) trait RenderingEngine<L: LayoutEngine, P: PaginationEngine<L>> {
+pub(crate) trait RenderingEngine<'a> {
     type OutputRenderer: RenderApp;
     type Error;
-    fn render(&mut self, book: Book) -> Result<Self::OutputRenderer, Self::Error>;
+    fn render<L, P>(&mut self, books: &'a Vec<Book>) -> Result<Self::OutputRenderer, Self::Error>
+    where
+        L: LayoutEngine,
+        P: PaginationEngine<L, OutputPages = Vec<Page>>;
 }

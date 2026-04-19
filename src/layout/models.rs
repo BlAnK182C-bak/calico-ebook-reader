@@ -7,7 +7,7 @@ pub(crate) trait LayoutOutput {
 
 pub(crate) trait LayoutEngine {
     type OutputLayout: LayoutOutput;
-    fn create_layout(max_width: usize, book: Book) -> Self::OutputLayout;
+    fn create_layout(max_width: usize, book: &Book) -> Self::OutputLayout;
 }
 
 #[derive(Debug)]

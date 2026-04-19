@@ -15,7 +15,7 @@ impl BasicLayout {
 }
 impl LayoutEngine for BasicLayout {
     type OutputLayout = BasicLayout;
-    fn create_layout(max_width: usize, book: Book) -> Self::OutputLayout {
+    fn create_layout(max_width: usize, book: &Book) -> Self::OutputLayout {
         let sections = book
             .get_all_sections() // see below
             .iter()

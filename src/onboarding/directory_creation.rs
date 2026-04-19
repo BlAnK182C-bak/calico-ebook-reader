@@ -1,6 +1,8 @@
 use std::fs;
 
-use crate::common::constants::{self, APPLICATION_DATA_PATH, BOOKS_DIR_PATH, EPUB_DIR_PATH};
+use crate::common::constants::{
+    self, APPLICATION_DATA_PATH, BOOKS_DIR_PATH, CONFIG_DIR_PATH, EPUB_DIR_PATH,
+};
 
 // TODO: Optimization: Make a single helper function for creating directories and call it in the individual functions
 
@@ -63,9 +65,32 @@ fn create_epubs_directory() {
     }
 }
 
+// configs directory
+fn create_configs_directory() {
+    println!("{}", CONFIG_DIR_PATH.to_str().unwrap());
+    match fs::exists(CONFIG_DIR_PATH.as_path()) {
+        Ok(file_exists) => {
+            if file_exists {
+                println!("create_configs_directory: configs directory already exists.");
+            } else {
+                fs::create_dir(constants::CONFIG_DIR_PATH.as_path())
+                    .expect("Failed to create configs directory.");
+                println!("Created configs directory successfully.")
+            }
+        }
+        Err(err) => {
+            panic!(
+                "An error occurred while creating configs directory: {}",
+                err
+            )
+        }
+    }
+}
+
 pub(super) fn create_all_directories() {
     println!("Starting creation of all directories...");
     create_application_directory();
     create_books_directory();
     create_epubs_directory();
+    create_configs_directory();
 }
