@@ -29,6 +29,7 @@ pub(crate) struct RatatuiApp<'a> {
     curr_book_pages: Option<Vec<Page>>,
     curr_book_idx: usize,
     current_page: usize,
+    should_quit: bool,
 }
 
 pub(crate) struct RatatuiEngine;
@@ -90,7 +91,12 @@ impl<'a> RenderApp for RatatuiApp<'a> {
     fn shutdown(&mut self) -> Result<(), Self::Error> {
         crossterm::terminal::disable_raw_mode()?;
         self.backend.show_cursor()?;
+        self.should_quit = true;
         Ok(())
+    }
+
+    fn should_quit(&mut self) -> bool {
+        self.should_quit
     }
 }
 
@@ -231,6 +237,7 @@ impl<'a> RenderingEngine<'a> for RatatuiEngine {
             curr_book_pages: None,
             curr_book_idx: 0,
             current_page: 1,
+            should_quit: false,
         })
     }
 }

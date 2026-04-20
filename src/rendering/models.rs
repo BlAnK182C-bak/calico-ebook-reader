@@ -13,11 +13,16 @@ pub(crate) trait RenderApp {
     type Error;
     fn draw(&mut self) -> Result<(), Self::Error>;
     fn handle_events(&mut self) -> Result<(), Self::Error>;
+    fn should_quit(&mut self) -> bool;
     fn run(&mut self) -> Result<(), Self::Error> {
         loop {
             self.draw()?;
             self.handle_events()?;
+            if self.should_quit() {
+                break;
+            }
         }
+        Ok(())
     }
     fn shutdown(&mut self) -> Result<(), Self::Error>;
 }
