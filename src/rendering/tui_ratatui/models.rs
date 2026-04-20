@@ -105,7 +105,26 @@ impl<'a> RatatuiApp<'a> {
         ))
     }
 
+    fn draw_empty(&mut self) -> Result<(), std::io::Error> {
+        self.backend.draw(|frame| {
+            let paragraph = Paragraph::new("Add some books bro 👍")
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(" Add some books bro 👍 ")
+                        .title_bottom(" Add some books bro 👍 "),
+                )
+                .alignment(ratatui::layout::Alignment::Center);
+            frame.render_widget(paragraph, frame.area());
+        })?;
+        Ok(())
+    }
+
     fn draw_library(&mut self) -> Result<(), std::io::Error> {
+        if self.books.is_empty() {
+            self.draw_empty()?;
+            return Ok(());
+        };
         let books = &self.books;
         self.backend.draw(|frame| {
             let chunks = ratatui::layout::Layout::default()
@@ -154,6 +173,11 @@ impl<'a> RatatuiApp<'a> {
     }
 
     fn draw_reader(&mut self) -> Result<(), std::io::Error> {
+        if self.books.is_empty() {
+            self.draw_empty()?;
+            return Ok(());
+        };
+
         let book = &self.books[self.curr_book_idx];
         let pages = self
             .curr_book_pages
