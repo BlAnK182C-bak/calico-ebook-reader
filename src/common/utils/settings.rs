@@ -16,9 +16,12 @@ pub(crate) fn scan_sources_for_books()
             let path = entry.path();
 
             if path.is_file() {
-                let extension = path.extension().and_then(|e| e.to_str()).ok_or_else(|| {
-                    std::io::Error::other("scan_sources_for_books: Error parsing the OsStr to str")
-                })?;
+                let Some(extension) = path
+                    .extension()
+                    .and_then(|e| e.to_str().filter(|e| !e.is_empty()))
+                else {
+                    continue;
+                };
                 let file_types = BookFileTypes::new(extension);
                 all_books.insert(path.to_string_lossy().to_string(), file_types);
             }
