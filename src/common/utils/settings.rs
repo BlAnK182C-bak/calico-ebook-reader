@@ -16,14 +16,19 @@ pub(crate) fn scan_sources_for_books()
             let path = entry.path();
 
             if path.is_file() {
+                let stringified_path = path.to_string_lossy().to_string();
                 let Some(extension) = path
                     .extension()
                     .and_then(|e| e.to_str().filter(|e| !e.is_empty()))
                 else {
+                    println!(
+                        "scan_sources_for_books: Warning: Found: {} without a file extension.",
+                        stringified_path
+                    );
                     continue;
                 };
                 let file_types = BookFileTypes::new(extension);
-                all_books.insert(path.to_string_lossy().to_string(), file_types);
+                all_books.insert(stringified_path, file_types);
             }
         }
     }
