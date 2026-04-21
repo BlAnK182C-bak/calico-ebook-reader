@@ -8,16 +8,29 @@ pub(crate) trait PaginationEngine<L: LayoutEngine> {
 
 #[derive(Debug)]
 pub(crate) struct Page {
-    number: usize,
     content: Vec<Line>,
+    start_byte_offset: usize,
+    end_byte_offset: usize,
 }
 
 impl Page {
-    pub(crate) fn new(number: usize, content: Vec<Line>) -> Self {
-        Self { number, content }
+    pub(crate) fn new(
+        content: Vec<Line>,
+        start_byte_offset: usize,
+        end_byte_offset: usize,
+    ) -> Self {
+        Self {
+            content,
+            start_byte_offset,
+            end_byte_offset,
+        }
     }
 
     pub(crate) fn get_content(&self) -> &Vec<Line> {
         &self.content
+    }
+
+    pub(crate) fn get_start_offset(&self) -> usize {
+        self.start_byte_offset
     }
 }
