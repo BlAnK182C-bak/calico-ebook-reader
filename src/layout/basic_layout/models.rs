@@ -16,6 +16,7 @@ impl BasicLayout {
 impl LayoutEngine for BasicLayout {
     type OutputLayout = BasicLayout;
     fn create_layout(max_width: usize, book: &Book) -> Self::OutputLayout {
+        let mut base_offset: usize = 0;
         let sections = book
             .get_all_sections() // see below
             .iter()
@@ -23,7 +24,13 @@ impl LayoutEngine for BasicLayout {
                 let lines: Vec<Line> = section
                     .get_content()
                     .split("\n")
-                    .flat_map(|l| wrap_words_to_next_line(l, max_width))
+                    .flat_map(|l| {
+                        let wrapped = wrap_words_to_next_line(l, max_width, base_offset);
+                        // TODO: Investigate whether + 1 actually will work in all cases - what
+                        // about things like \r\n that happen in windows
+                        base_offset += l.len() + 1; // line length + whitespace 
+                        wrapped
+                    })
                     .collect();
                 LayoutSection::new(String::from(section.get_id()), lines)
             })

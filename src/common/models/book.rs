@@ -111,4 +111,16 @@ impl Book {
             self.metadata.isbn.as_deref().unwrap_or("Unknown ISBN")
         )
     }
+
+    pub(crate) fn get_id(&self) -> String {
+        String::from(format!(
+            "{}|{}|{}",
+            self.metadata.title,
+            self.metadata
+                .author
+                .as_ref()
+                .unwrap_or(&String::from("UNKN")),
+            self.metadata.isbn.as_ref().unwrap_or(&String::from("ISBN"))
+        ))
+    }
 }
