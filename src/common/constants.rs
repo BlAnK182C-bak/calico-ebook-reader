@@ -11,6 +11,9 @@ pub(crate) const APPLICATION_AUTHOR: &str = "Abhinav Kumar Singh";
 // settings based constants
 pub(crate) const SETTINGS_FILENAME: &str = "settings.toml";
 
+// bookmarks based constants
+pub(crate) const BOOKMARKS_FILENAME: &str = "bookmarks.toml";
+
 // reader constants
 pub(crate) const LIBRARY_LIST_SECTION_NAME: &str = " Library ";
 pub(crate) const LIBRARY_METADATA_SECTION_NAME: &str = " Metadata ";
@@ -52,5 +55,11 @@ pub(crate) static CONFIG_DIR_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
 pub(crate) static SETTINGS_FILE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = CONFIG_DIR_PATH.to_path_buf();
     path.push(SETTINGS_FILENAME);
+    path
+});
+
+pub(crate) static BOOKMARKS_FILE_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    let mut path = CONFIG_DIR_PATH.to_path_buf();
+    path.push(BOOKMARKS_FILENAME);
     path
 });

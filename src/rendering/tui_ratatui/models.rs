@@ -10,7 +10,7 @@ use ratatui::{
 use crate::{
     common::{
         constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME},
-        models::book::Book,
+        models::{book::Book, bookmarks::Bookmarks},
     },
     layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
     pagination::{
@@ -68,8 +68,13 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         self.curr_book_lookup = Some(pages_offset_to_pg_no(&pages));
                         self.curr_book_pages = Some(pages);
 
-                        // TODO: change to read from bookmarks when implemented
-                        self.byte_offset = 0; // start with character 0
+                        // TODO: make functions for both get and set default bookmarks
+                        self.byte_offset = Bookmarks::default()
+                            .load_bookmarks()?
+                            .get_bookmarks()
+                            .get(&self.books[self.curr_book_idx].get_id())
+                            .map(|b| b.get_offset())
+                            .unwrap_or(0); // no bookmark found, start from beginning/
                         self.state = AppState::Reading;
                     }
                     KeyCode::Char('q') => self.shutdown()?,
@@ -94,12 +99,20 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                             if *page_no + 1 < total_pages {
                                 let next_page: &Page = &pages[*page_no + 1];
                                 self.byte_offset = next_page.get_start_offset();
+                                Bookmarks::default().load_bookmarks()?.set_bookmarks(
+                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.byte_offset,
+                                )?;
                             }
                         }
                         KeyCode::Left | KeyCode::Char('h') => {
                             if *page_no > 0 {
                                 let prev_page: &Page = &pages[*page_no - 1];
                                 self.byte_offset = prev_page.get_start_offset();
+                                Bookmarks::default().load_bookmarks()?.set_bookmarks(
+                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.byte_offset,
+                                )?;
                             }
                         }
                         KeyCode::Backspace => {

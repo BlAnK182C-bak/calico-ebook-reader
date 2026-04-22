@@ -6,8 +6,13 @@ use crate::common::{
 };
 
 fn create_settings_file() -> Result<(), std::io::Error> {
-    File::create(SETTINGS_FILE_PATH.to_path_buf())?;
-    Ok(())
+    if SETTINGS_FILE_PATH.exists() {
+        println!("create_settings_file: Settings file already exists. Skipping creation");
+        Ok(())
+    } else {
+        File::create(SETTINGS_FILE_PATH.to_path_buf())?;
+        Ok(())
+    }
 }
 
 fn create_source_setting(settings: &Settings) -> Result<(), std::io::Error> {
