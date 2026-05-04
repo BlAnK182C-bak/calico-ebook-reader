@@ -9,7 +9,7 @@ pub(super) mod directory_creation;
 pub(super) mod settings_file_creation;
 
 pub(crate) fn pipeline() {
-    create_all_directories();
+    create_all_directories().unwrap();
     settings_pipeline().unwrap();
     bookmarks_pipeline().unwrap();
 }
