@@ -72,7 +72,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         self.byte_offset = Bookmarks::default()
                             .load_bookmarks()?
                             .get_bookmarks()
-                            .get(&self.books[self.curr_book_idx].get_id())
+                            .get(self.books[self.curr_book_idx].get_id())
                             .map(|b| b.get_offset())
                             .unwrap_or(0); // no bookmark found, start from beginning/
                         self.state = AppState::Reading;
@@ -100,7 +100,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let next_page: &Page = &pages[*page_no + 1];
                                 self.byte_offset = next_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.curr_book_idx].get_id(),
                                     self.byte_offset,
                                 )?;
                             }
@@ -110,7 +110,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let prev_page: &Page = &pages[*page_no - 1];
                                 self.byte_offset = prev_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.curr_book_idx].get_id(),
                                     self.byte_offset,
                                 )?;
                             }
