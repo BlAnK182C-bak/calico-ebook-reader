@@ -62,9 +62,6 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                     KeyCode::Enter => {
                         let pages = self.paginate_current_book()?;
 
-                        // TODO: Fix this - Currently curr_book_pages takes Vec<Pages> we can make
-                        // it take a reference the only reason this is not breaking is because I am
-                        // calling lookup first. If the order were to change this will break.
                         self.curr_book_lookup = Some(pages_offset_to_pg_no(&pages));
                         self.curr_book_pages = Some(pages);
 
