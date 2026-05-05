@@ -210,7 +210,7 @@ impl RawEpub {
             thread::scope(|scope| {
                 let author_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "creator",
                         Some("role"),
                         Some("aut"),
@@ -219,7 +219,7 @@ impl RawEpub {
 
                 let title_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "title",
                         None,
                         None,
@@ -228,7 +228,7 @@ impl RawEpub {
 
                 let desc_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "description",
                         None,
                         None,
@@ -239,7 +239,7 @@ impl RawEpub {
                 // series as a name
                 let series_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "series",
                         None,
                         None,
@@ -250,7 +250,7 @@ impl RawEpub {
                 // series_index as a name
                 let series_index_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "series_index",
                         None,
                         None,
@@ -259,7 +259,7 @@ impl RawEpub {
 
                 let subject_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "subject",
                         None,
                         None,
@@ -268,7 +268,7 @@ impl RawEpub {
 
                 let isbn_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "identifier",
                         Some("scheme"),
                         Some("ISBN"),
@@ -277,7 +277,7 @@ impl RawEpub {
 
                 let pub_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "publisher",
                         None,
                         None,
@@ -286,7 +286,7 @@ impl RawEpub {
 
                 let rights_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "rights",
                         None,
                         None,

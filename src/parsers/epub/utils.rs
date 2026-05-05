@@ -47,17 +47,16 @@ pub(super) fn extract_full_path(container_xml_parser: EventReader<File>) -> Opti
         })
 }
 
-// TODO: content_obf_parser needs to be a &mut EventReader not a EventReader
 pub(super) fn extract_metadata_value<'a>(
-    content_obf_parser: EventReader<File>,
+    content_obf_parser: &mut EventReader<File>,
     tag_name: &'a str,
     attr_name: Option<&'a str>,
     attr_value: Option<&'a str>,
 ) -> Option<String> {
     let mut inside_metadata_tag = false;
-    let mut iter = content_obf_parser.into_iter();
+    let iter = content_obf_parser;
 
-    while let Some(Ok(event)) = iter.next() {
+    while let Ok(event) = iter.next() {
         match event {
             XmlEvent::StartElement { ref name, .. } if name.local_name == "metadata" => {
                 inside_metadata_tag = true;
@@ -78,7 +77,7 @@ pub(super) fn extract_metadata_value<'a>(
                     _ => true,
                 };
 
-                if matches && let Some(Ok(XmlEvent::Characters(text))) = iter.next() {
+                if matches && let Ok(XmlEvent::Characters(text)) = iter.next() {
                     return Some(text);
                 }
             }
