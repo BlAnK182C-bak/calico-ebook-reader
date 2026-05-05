@@ -1,7 +1,7 @@
 use std::fs;
 
 use crate::common::constants::{
-    self, APPLICATION_DATA_PATH, BOOKS_DIR_PATH, CONFIG_DIR_PATH, EPUB_DIR_PATH,
+    APPLICATION_DATA_PATH, BOOKS_DIR_PATH, CONFIG_DIR_PATH, EPUB_DIR_PATH,
 };
 
 fn create_dir(dir_path: &str, dir_name: &str) -> Result<(), std::io::Error> {
@@ -11,7 +11,7 @@ fn create_dir(dir_path: &str, dir_name: &str) -> Result<(), std::io::Error> {
                 println!("create_dir: {} directory already exists.", dir_name);
                 Ok(())
             } else {
-                fs::create_dir(constants::APPLICATION_DATA_PATH.as_path())
+                fs::create_dir(dir_path)
                     .expect(format!("Failed to create {} directory.", dir_name).as_str());
                 println!("Created {} directory successfully.", dir_name);
                 Ok(())

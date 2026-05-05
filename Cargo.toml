@@ -12,3 +12,4 @@ ratatui = "0.30.0"
 crossterm = "0.29.0"
 toml = "1.1.2"
 serde = { version = "1.0.228", features=["derive"]}
+uuid={version = "1.23.1", features=["v4"]}
