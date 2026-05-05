@@ -171,22 +171,15 @@ impl RawEpub {
         let file_name = get_file_name_from_path(self.get_file_path())?;
         let curr_book_path = get_book_folder_name(BookFileTypes::EpubFileType, file_name)?;
 
-        match fs::exists(&curr_book_path) {
-            Ok(file_exists) => {
-                if file_exists {
-                    println!(
-                        "warning: extract_epub_file: This book already exists. Not extracting another folder."
-                    );
-                } else {
-                    fs::create_dir(&curr_book_path)?;
-                }
-                self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
-            }
-            Err(err) => {
-                // TODO: Make this error more verbose and specific
-                return Err(err.into());
-            }
+        let file_exists = fs::exists(&curr_book_path)?;
+        if file_exists {
+            println!(
+                "warning: extract_epub_file: This book already exists. Not extracting another folder."
+            );
+        } else {
+            fs::create_dir(&curr_book_path)?;
         }
+        self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
 
         let mut archive = ZipArchive::new(epub_file)?;
         archive.extract(curr_book_path)?;

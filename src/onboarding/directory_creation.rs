@@ -5,24 +5,15 @@ use crate::common::constants::{
 };
 
 fn create_dir(dir_path: &str, dir_name: &str) -> Result<(), std::io::Error> {
-    match fs::exists(dir_path) {
-        Ok(file_exists) => {
-            if file_exists {
-                println!("create_dir: {} directory already exists.", dir_name);
-                Ok(())
-            } else {
-                fs::create_dir(dir_path)
-                    .expect(format!("Failed to create {} directory.", dir_name).as_str());
-                println!("Created {} directory successfully.", dir_name);
-                Ok(())
-            }
-        }
-        Err(err) => {
-            panic!(
-                "An error occurred while creating {} directory: {}",
-                dir_name, err
-            )
-        }
+    let file_exists = fs::exists(dir_path)?;
+    if file_exists {
+        println!("create_dir: {} directory already exists.", dir_name);
+        Ok(())
+    } else {
+        fs::create_dir(dir_path)
+            .expect(format!("Failed to create {} directory.", dir_name).as_str());
+        println!("Created {} directory successfully.", dir_name);
+        Ok(())
     }
 }
 
