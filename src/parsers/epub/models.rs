@@ -14,7 +14,6 @@ use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
 
 // structs
-#[derive(Debug)]
 pub(crate) struct RawEpub {
     file_path: String,
     extracted_directory_path: Option<String>, // The folder in device where the epub is extracted to
@@ -157,7 +156,7 @@ impl RawEpub {
                     .as_ref(),
             );
             self.set_rootfile_path(
-                extract_full_path(EventReader::new(File::open(
+                extract_full_path(&mut EventReader::new(File::open(
                     Path::new(&edp).join(EPUB_ENTRY_POINT),
                 )?))
                 .map(|p| Path::new(&edp).join(p).to_string_lossy().into_owned()),
@@ -171,22 +170,15 @@ impl RawEpub {
         let file_name = get_file_name_from_path(self.get_file_path())?;
         let curr_book_path = get_book_folder_name(BookFileTypes::EpubFileType, file_name)?;
 
-        match fs::exists(&curr_book_path) {
-            Ok(file_exists) => {
-                if file_exists {
-                    println!(
-                        "warning: extract_epub_file: This book already exists. Not extracting another folder."
-                    );
-                } else {
-                    fs::create_dir(&curr_book_path)?;
-                }
-                self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
-            }
-            Err(err) => {
-                // TODO: Make this error more verbose and specific
-                return Err(err.into());
-            }
+        let file_exists = fs::exists(&curr_book_path)?;
+        if file_exists {
+            println!(
+                "warning: extract_epub_file: This book already exists. Not extracting another folder."
+            );
+        } else {
+            fs::create_dir(&curr_book_path)?;
         }
+        self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
 
         let mut archive = ZipArchive::new(epub_file)?;
         archive.extract(curr_book_path)?;
@@ -210,7 +202,7 @@ impl RawEpub {
             thread::scope(|scope| {
                 let author_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "creator",
                         Some("role"),
                         Some("aut"),
@@ -219,7 +211,7 @@ impl RawEpub {
 
                 let title_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "title",
                         None,
                         None,
@@ -228,7 +220,7 @@ impl RawEpub {
 
                 let desc_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "description",
                         None,
                         None,
@@ -239,7 +231,7 @@ impl RawEpub {
                 // series as a name
                 let series_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "series",
                         None,
                         None,
@@ -250,7 +242,7 @@ impl RawEpub {
                 // series_index as a name
                 let series_index_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "series_index",
                         None,
                         None,
@@ -259,7 +251,7 @@ impl RawEpub {
 
                 let subject_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "subject",
                         None,
                         None,
@@ -268,7 +260,7 @@ impl RawEpub {
 
                 let isbn_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "identifier",
                         Some("scheme"),
                         Some("ISBN"),
@@ -277,7 +269,7 @@ impl RawEpub {
 
                 let pub_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "publisher",
                         None,
                         None,
@@ -286,7 +278,7 @@ impl RawEpub {
 
                 let rights_handle = scope.spawn(|| {
                     extract_metadata_value(
-                        EventReader::new(File::open(&rf).unwrap()),
+                        &mut EventReader::new(File::open(&rf).unwrap()),
                         "rights",
                         None,
                         None,

@@ -19,9 +19,12 @@ pub(crate) struct BookSection {
 }
 
 pub(crate) struct Book {
-    metadata: BookMetadata,
+    full_metadata: BookMetadata,
     file_type: BookFileTypes,
     content: Vec<BookSection>,
+    book_title: String,
+    readable_metadata: String,
+    book_id: String,
 }
 
 impl BookMetadata {
@@ -68,10 +71,46 @@ impl Book {
         file_type: BookFileTypes,
         content: Vec<BookSection>,
     ) -> Self {
+        let book_title: String = format!(
+            "{} by {}",
+            &metadata.title,
+            &metadata.author.as_deref().unwrap_or("Unknown Author")
+        );
+
+        let readable_metadata: String = format!(
+            "{} by {}\n\n {}\n\n Series: #{} of {} \n\n Subjects: {}\n\n Rights: {} | {} | {}",
+            &metadata.title,
+            &metadata.author.as_deref().unwrap_or("Unknown Author"),
+            &metadata.description.as_deref().unwrap_or("-"),
+            &metadata
+                .series_order_number
+                .map(|n| n.to_string())
+                .unwrap_or(String::from("-1")),
+            &metadata.series.as_deref().unwrap_or("N/A"),
+            &metadata
+                .subjects
+                .as_ref()
+                .map(|s| s.join(", "))
+                .unwrap_or(String::from("N/A")),
+            &metadata.publisher.as_deref().unwrap_or("Unknown Publisher"),
+            &metadata.rights.as_deref().unwrap_or("Unknown Rights"),
+            &metadata.isbn.as_deref().unwrap_or("Unknown ISBN")
+        );
+
+        let book_id: String = format!(
+            "{}|{}|{}",
+            &metadata.title,
+            &metadata.author.as_ref().unwrap_or(&String::from("UNKN")),
+            &metadata.isbn.as_ref().unwrap_or(&String::from("ISBN"))
+        );
+
         Self {
-            metadata,
+            full_metadata: metadata,
             file_type,
             content,
+            book_title,
+            readable_metadata,
+            book_id,
         }
     }
 
@@ -79,48 +118,15 @@ impl Book {
         &self.content
     }
 
-    pub(crate) fn get_title(&self) -> String {
-        format!(
-            "{} by {}",
-            self.metadata.title,
-            self.metadata.author.as_deref().unwrap_or("Unknown Author")
-        )
+    pub(crate) fn get_title(&self) -> &str {
+        &self.book_title
     }
 
-    pub(crate) fn get_metadata(&self) -> String {
-        format!(
-            "{} by {}\n\n {}\n\n Series: #{} of {} \n\n Subjects: {}\n\n Rights: {} | {} | {}",
-            self.metadata.title,
-            self.metadata.author.as_deref().unwrap_or("Unknown Author"),
-            self.metadata.description.as_deref().unwrap_or("-"),
-            self.metadata
-                .series_order_number
-                .map(|n| n.to_string())
-                .unwrap_or(String::from("-1")),
-            self.metadata.series.as_deref().unwrap_or("N/A"),
-            self.metadata
-                .subjects
-                .as_ref()
-                .map(|s| s.join(", "))
-                .unwrap_or(String::from("N/A")),
-            self.metadata
-                .publisher
-                .as_deref()
-                .unwrap_or("Unknown Publisher"),
-            self.metadata.rights.as_deref().unwrap_or("Unknown Rights"),
-            self.metadata.isbn.as_deref().unwrap_or("Unknown ISBN")
-        )
+    pub(crate) fn get_metadata(&self) -> &str {
+        &self.readable_metadata
     }
 
-    pub(crate) fn get_id(&self) -> String {
-        String::from(format!(
-            "{}|{}|{}",
-            self.metadata.title,
-            self.metadata
-                .author
-                .as_ref()
-                .unwrap_or(&String::from("UNKN")),
-            self.metadata.isbn.as_ref().unwrap_or(&String::from("ISBN"))
-        ))
+    pub(crate) fn get_id(&self) -> &str {
+        &self.book_id
     }
 }

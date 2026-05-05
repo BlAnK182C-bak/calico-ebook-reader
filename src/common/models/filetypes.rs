@@ -1,4 +1,3 @@
-#[derive(Debug)]
 pub(crate) enum BookFileTypes {
     EpubFileType,
     UnknownFileType,

@@ -20,7 +20,6 @@ pub(crate) mod parsers;
 pub(crate) mod rendering;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    //TODO: Anywhere &String is being returned in a getter it needs to be changed to &str
     println!("Hello from Calico!");
 
     println!("Starting onboarding pipeline...");

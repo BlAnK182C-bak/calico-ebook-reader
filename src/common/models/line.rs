@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct Line {
     line_content: String,
     offset_of_first_char: usize,

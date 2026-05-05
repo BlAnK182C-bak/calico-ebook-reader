@@ -10,7 +10,6 @@ pub(crate) trait LayoutEngine {
     fn create_layout(max_width: usize, book: &Book) -> Self::OutputLayout;
 }
 
-#[derive(Debug)]
 pub(crate) struct LayoutSection {
     id: String,
     lines: Vec<Line>,

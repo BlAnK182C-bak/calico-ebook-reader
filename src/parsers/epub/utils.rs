@@ -22,42 +22,33 @@ pub(super) fn extract_attr_value_from_attrs(
         })
 }
 
-pub(super) fn extract_full_path(container_xml_parser: EventReader<File>) -> Option<String> {
-    container_xml_parser
-        .into_iter()
-        .find(|element| {
-            matches!(
-                element,
-                Ok(XmlEvent::StartElement {
-                    name,
-                    ..
-                }) if name.local_name == "rootfile"
-            )
-        })
-        .and_then(|event| event.ok())
-        .and_then(|event| {
-            if let XmlEvent::StartElement { attributes, .. } = event {
-                attributes
+pub(super) fn extract_full_path(container_xml_parser: &mut EventReader<File>) -> Option<String> {
+    while let Ok(event) = container_xml_parser.next() {
+        if let XmlEvent::StartElement {
+            name, attributes, ..
+        } = event
+        {
+            if name.local_name == "rootfile" {
+                return attributes
                     .into_iter()
                     .find(|attr| attr.name.local_name == "full-path")
-                    .map(|attr| attr.value)
-            } else {
-                None
+                    .map(|attr| attr.value);
             }
-        })
+        }
+    }
+    None
 }
 
-// TODO: content_obf_parser needs to be a &mut EventReader not a EventReader
 pub(super) fn extract_metadata_value<'a>(
-    content_obf_parser: EventReader<File>,
+    content_obf_parser: &mut EventReader<File>,
     tag_name: &'a str,
     attr_name: Option<&'a str>,
     attr_value: Option<&'a str>,
 ) -> Option<String> {
     let mut inside_metadata_tag = false;
-    let mut iter = content_obf_parser.into_iter();
+    let iter = content_obf_parser;
 
-    while let Some(Ok(event)) = iter.next() {
+    while let Ok(event) = iter.next() {
         match event {
             XmlEvent::StartElement { ref name, .. } if name.local_name == "metadata" => {
                 inside_metadata_tag = true;
@@ -78,7 +69,7 @@ pub(super) fn extract_metadata_value<'a>(
                     _ => true,
                 };
 
-                if matches && let Some(Ok(XmlEvent::Characters(text))) = iter.next() {
+                if matches && let Ok(XmlEvent::Characters(text)) = iter.next() {
                     return Some(text);
                 }
             }
@@ -103,10 +94,10 @@ pub(super) fn validate_meta_inf(path: &str) -> Result<bool, std::io::Error> {
 }
 
 pub(super) fn validate_content_obf(path: &str) -> Result<bool, std::io::Error> {
-    let container_xml_parser =
+    let mut container_xml_parser =
         EventReader::new(File::open(Path::new(path).join(EPUB_ENTRY_POINT))?);
 
-    let full_path = extract_full_path(container_xml_parser);
+    let full_path = extract_full_path(&mut container_xml_parser);
 
     match full_path {
         Some(_) => Ok(true),

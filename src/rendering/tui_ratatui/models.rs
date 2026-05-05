@@ -62,9 +62,6 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                     KeyCode::Enter => {
                         let pages = self.paginate_current_book()?;
 
-                        // TODO: Fix this - Currently curr_book_pages takes Vec<Pages> we can make
-                        // it take a reference the only reason this is not breaking is because I am
-                        // calling lookup first. If the order were to change this will break.
                         self.curr_book_lookup = Some(pages_offset_to_pg_no(&pages));
                         self.curr_book_pages = Some(pages);
 
@@ -72,7 +69,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         self.byte_offset = Bookmarks::default()
                             .load_bookmarks()?
                             .get_bookmarks()
-                            .get(&self.books[self.curr_book_idx].get_id())
+                            .get(self.books[self.curr_book_idx].get_id())
                             .map(|b| b.get_offset())
                             .unwrap_or(0); // no bookmark found, start from beginning/
                         self.state = AppState::Reading;
@@ -100,7 +97,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let next_page: &Page = &pages[*page_no + 1];
                                 self.byte_offset = next_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.curr_book_idx].get_id(),
                                     self.byte_offset,
                                 )?;
                             }
@@ -110,7 +107,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let prev_page: &Page = &pages[*page_no - 1];
                                 self.byte_offset = prev_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    &self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.curr_book_idx].get_id(),
                                     self.byte_offset,
                                 )?;
                             }

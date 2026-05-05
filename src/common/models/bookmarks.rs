@@ -31,7 +31,7 @@ impl Bookmarks {
 
     pub(crate) fn set_bookmarks(
         &mut self,
-        book_id: &String,
+        book_id: &str,
         offset: usize,
     ) -> Result<(), std::io::Error> {
         self.bookmarks.insert(
