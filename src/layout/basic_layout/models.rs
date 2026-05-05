@@ -3,7 +3,6 @@ use crate::common::models::line::Line;
 use crate::layout::basic_layout::utils::wrap_words_to_next_line;
 use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
 
-#[derive(Debug)]
 pub(crate) struct BasicLayout {
     sections: Vec<LayoutSection>,
 }

@@ -14,7 +14,6 @@ use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
 
 // structs
-#[derive(Debug)]
 pub(crate) struct RawEpub {
     file_path: String,
     extracted_directory_path: Option<String>, // The folder in device where the epub is extracted to
