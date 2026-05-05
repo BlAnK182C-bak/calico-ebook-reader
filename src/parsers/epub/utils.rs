@@ -22,29 +22,21 @@ pub(super) fn extract_attr_value_from_attrs(
         })
 }
 
-pub(super) fn extract_full_path(container_xml_parser: EventReader<File>) -> Option<String> {
-    container_xml_parser
-        .into_iter()
-        .find(|element| {
-            matches!(
-                element,
-                Ok(XmlEvent::StartElement {
-                    name,
-                    ..
-                }) if name.local_name == "rootfile"
-            )
-        })
-        .and_then(|event| event.ok())
-        .and_then(|event| {
-            if let XmlEvent::StartElement { attributes, .. } = event {
-                attributes
+pub(super) fn extract_full_path(container_xml_parser: &mut EventReader<File>) -> Option<String> {
+    while let Ok(event) = container_xml_parser.next() {
+        if let XmlEvent::StartElement {
+            name, attributes, ..
+        } = event
+        {
+            if name.local_name == "rootfile" {
+                return attributes
                     .into_iter()
                     .find(|attr| attr.name.local_name == "full-path")
-                    .map(|attr| attr.value)
-            } else {
-                None
+                    .map(|attr| attr.value);
             }
-        })
+        }
+    }
+    None
 }
 
 pub(super) fn extract_metadata_value<'a>(
@@ -102,10 +94,10 @@ pub(super) fn validate_meta_inf(path: &str) -> Result<bool, std::io::Error> {
 }
 
 pub(super) fn validate_content_obf(path: &str) -> Result<bool, std::io::Error> {
-    let container_xml_parser =
+    let mut container_xml_parser =
         EventReader::new(File::open(Path::new(path).join(EPUB_ENTRY_POINT))?);
 
-    let full_path = extract_full_path(container_xml_parser);
+    let full_path = extract_full_path(&mut container_xml_parser);
 
     match full_path {
         Some(_) => Ok(true),

@@ -157,7 +157,7 @@ impl RawEpub {
                     .as_ref(),
             );
             self.set_rootfile_path(
-                extract_full_path(EventReader::new(File::open(
+                extract_full_path(&mut EventReader::new(File::open(
                     Path::new(&edp).join(EPUB_ENTRY_POINT),
                 )?))
                 .map(|p| Path::new(&edp).join(p).to_string_lossy().into_owned()),
