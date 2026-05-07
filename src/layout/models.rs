@@ -11,16 +11,6 @@ pub(crate) trait LayoutEngine {
 }
 
 pub(crate) struct LayoutSection {
-    id: String,
-    lines: Vec<Line>,
-}
-
-impl LayoutSection {
-    pub(crate) fn new(id: String, lines: Vec<Line>) -> Self {
-        Self { id, lines }
-    }
-
-    pub(crate) fn get_lines(&self) -> &Vec<Line> {
-        &self.lines
-    }
+    pub(crate) id: String,
+    pub(crate) lines: Vec<Line>,
 }
