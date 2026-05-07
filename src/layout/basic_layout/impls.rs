@@ -1,8 +1,8 @@
-use super::structs::BasicLayout;
+use super::models::BasicLayout;
 use crate::common::models::book::Book;
 use crate::common::models::line::Line;
 use crate::layout::basic_layout::utils::wrap_words_to_next_line;
-use crate::layout::structs::{LayoutEngine, LayoutOutput, LayoutSection};
+use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
 
 impl BasicLayout {
     pub(crate) fn new(sections: Vec<LayoutSection>) -> Self {

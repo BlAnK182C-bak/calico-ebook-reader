@@ -1,4 +1,4 @@
-use super::structs::LayoutSection;
+use super::models::LayoutSection;
 use crate::common::models::line::Line;
 
 impl LayoutSection {

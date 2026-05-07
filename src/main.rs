@@ -3,7 +3,7 @@ use crate::{
         models::{book::Book, filetypes::BookFileTypes},
         utils::settings::scan_sources_for_books,
     },
-    layout::basic_layout::structs::BasicLayout,
+    layout::basic_layout::models::BasicLayout,
     pagination::basic_pagination::models::BasicPagination,
     parsers::{epub::models::RawEpub, models::ParserEngine},
     rendering::{
