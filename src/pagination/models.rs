@@ -7,7 +7,7 @@ pub(crate) trait PaginationEngine<L: LayoutEngine> {
 }
 
 pub(crate) struct Page {
-    pub(super) content: Vec<Line>,
-    pub(super) start_byte_offset: usize,
-    pub(super) end_byte_offset: usize,
+    pub(crate) content: Vec<Line>,
+    pub(crate) start_byte_offset: usize,
+    pub(crate) end_byte_offset: usize,
 }
