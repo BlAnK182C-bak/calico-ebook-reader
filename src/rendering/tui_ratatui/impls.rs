@@ -67,19 +67,14 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         .curr_book_pages
                         .as_ref()
                         .expect("draw_reader: Pages should be set before setting reading state");
-                    let lookup = self.curr_book_lookup.as_ref().ok_or_else(|| {
-                        std::io::Error::other("handle_events: Lookup not created")
-                    })?;
-                    let page_no = lookup.get(&self.byte_offset).ok_or_else(|| {
-                        std::io::Error::other("draw_reader: No page found for this byte offset")
-                    })?;
 
+                    let page_no = self.get_current_page_no()?;
                     let total_pages = pages.len();
 
                     match key.code {
                         KeyCode::Right | KeyCode::Char('l') => {
-                            if *page_no + 1 < total_pages {
-                                let next_page: &Page = &pages[*page_no + 1];
+                            if page_no + 1 < total_pages {
+                                let next_page: &Page = &pages[page_no + 1];
                                 self.byte_offset = next_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
                                     self.books[self.curr_book_idx].get_id(),
@@ -88,8 +83,8 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                             }
                         }
                         KeyCode::Left | KeyCode::Char('h') => {
-                            if *page_no > 0 {
-                                let prev_page: &Page = &pages[*page_no - 1];
+                            if page_no > 0 {
+                                let prev_page: &Page = &pages[page_no - 1];
                                 self.byte_offset = prev_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
                                     self.books[self.curr_book_idx].get_id(),
@@ -123,6 +118,21 @@ impl<'a> RenderApp for RatatuiApp<'a> {
 }
 
 impl<'a> RatatuiApp<'a> {
+    fn get_current_page_no(&self) -> Result<usize, std::io::Error> {
+        // TODO: Bugfix: if the size of a terminal changes when we have set some byteoffset for a
+        // page then it will always default to 0. Need to make size, and dimensions dynamic -
+        // something like frame state perhaps. This bug most likely only will be observed when going
+        // from large to small dimensions not the other way around (this is not a fucking AI
+        // generated comment, shut up)
+
+        let lookup = self
+            .curr_book_lookup
+            .as_ref()
+            .ok_or_else(|| std::io::Error::other("handle_events: Lookup not created"))?;
+        let page_no = *lookup.get(&self.byte_offset).unwrap_or(&0usize);
+        Ok(page_no)
+    }
+
     fn paginate_current_book(&mut self) -> Result<Vec<Page>, std::io::Error> {
         let book = &self.books[self.curr_book_idx];
         let size = self.backend.size()?;
@@ -211,14 +221,8 @@ impl<'a> RatatuiApp<'a> {
             .curr_book_pages
             .as_ref()
             .expect("draw_reader: Pages should be set before setting reading state");
-        let lookup = self
-            .curr_book_lookup
-            .as_ref()
-            .ok_or_else(|| std::io::Error::other("handle_events: Lookup not created"))?;
-        let page_no = lookup.get(&self.byte_offset).ok_or_else(|| {
-            std::io::Error::other("draw_reader: No page found for this byte offset")
-        })?;
-        let current_page: &Page = &pages[*page_no];
+        let page_no = self.get_current_page_no()?;
+        let current_page: &Page = &pages[page_no];
         let total_pages = pages.len();
 
         self.backend.draw(|frame| {
