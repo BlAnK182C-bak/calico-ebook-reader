@@ -1,4 +1,4 @@
-use crate::{layout::models::LayoutEngine, pagination::models::PaginationEngine};
+use crate::{layout::structs::LayoutEngine, pagination::models::PaginationEngine};
 
 pub(crate) mod basic_pagination;
 pub(crate) mod models;

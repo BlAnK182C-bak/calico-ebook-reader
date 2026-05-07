@@ -1,5 +1,5 @@
 use crate::common::models::line::Line;
-use crate::layout::models::LayoutEngine;
+use crate::layout::structs::LayoutEngine;
 
 pub(crate) trait PaginationEngine<L: LayoutEngine> {
     type OutputPages;

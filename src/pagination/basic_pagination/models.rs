@@ -1,5 +1,5 @@
 use crate::{
-    layout::models::{LayoutEngine, LayoutOutput},
+    layout::structs::{LayoutEngine, LayoutOutput},
     pagination::models::{Page, PaginationEngine},
 };
 

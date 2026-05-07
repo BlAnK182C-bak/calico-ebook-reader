@@ -1,11 +1,8 @@
+use super::structs::BasicLayout;
 use crate::common::models::book::Book;
 use crate::common::models::line::Line;
 use crate::layout::basic_layout::utils::wrap_words_to_next_line;
-use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
-
-pub(crate) struct BasicLayout {
-    sections: Vec<LayoutSection>,
-}
+use crate::layout::structs::{LayoutEngine, LayoutOutput, LayoutSection};
 
 impl BasicLayout {
     pub(crate) fn new(sections: Vec<LayoutSection>) -> Self {

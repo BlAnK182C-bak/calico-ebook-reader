@@ -12,7 +12,7 @@ use crate::{
         constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME},
         models::{book::Book, bookmarks::Bookmarks},
     },
-    layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
+    layout::{basic_layout::structs::BasicLayout, layoutize, structs::LayoutEngine},
     pagination::{
         basic_pagination::models::BasicPagination,
         models::{Page, PaginationEngine},

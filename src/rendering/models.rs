@@ -1,6 +1,6 @@
 use crate::{
     common::models::book::Book,
-    layout::models::LayoutEngine,
+    layout::structs::LayoutEngine,
     pagination::models::{Page, PaginationEngine},
 };
 
