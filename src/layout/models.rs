@@ -11,6 +11,6 @@ pub(crate) trait LayoutEngine {
 }
 
 pub(crate) struct LayoutSection {
-    pub(super) id: String,
-    pub(super) lines: Vec<Line>,
+    pub(crate) id: String,
+    pub(crate) lines: Vec<Line>,
 }

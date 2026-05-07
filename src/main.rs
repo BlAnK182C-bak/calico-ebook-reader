@@ -20,10 +20,13 @@ use crate::{
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: When we separated impls and models, we made everything pub(super) - need to evaluate is
-    // there a necessity even for getters and setters at this point - I am trying to inject a OOPS
-    // concept into a functional language :"))
+    // TODO: When we separated impls and models, we made everything pub(crate) which goes against
+    // the getter and setters model - many modifs necessary
 
+    println!("Hello from Calico!");
+
+    println!("Starting onboarding pipeline...");
+    onboarding::pipeline();
     println!("Onboarding pipeline finished running successfully!");
 
     let all_book_paths_and_extensions = scan_sources_for_books().unwrap();
