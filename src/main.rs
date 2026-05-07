@@ -1,3 +1,10 @@
+pub(crate) mod common;
+pub(crate) mod layout;
+pub(crate) mod onboarding;
+pub(crate) mod pagination;
+pub(crate) mod parsers;
+pub(crate) mod rendering;
+
 use crate::{
     common::{
         models::{book::Book, filetypes::BookFileTypes},
@@ -12,14 +19,10 @@ use crate::{
     },
 };
 
-pub(crate) mod common;
-pub(crate) mod layout;
-pub(crate) mod onboarding;
-pub(crate) mod pagination;
-pub(crate) mod parsers;
-pub(crate) mod rendering;
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO: When we separated impls and models, we made everything pub(crate) which goes against
+    // the getter and setters model - many modifs necessary
+
     println!("Hello from Calico!");
 
     println!("Starting onboarding pipeline...");
