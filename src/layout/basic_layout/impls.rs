@@ -4,11 +4,6 @@ use crate::common::models::line::Line;
 use crate::layout::basic_layout::utils::wrap_words_to_next_line;
 use crate::layout::models::{LayoutEngine, LayoutOutput, LayoutSection};
 
-impl BasicLayout {
-    pub(crate) fn new(sections: Vec<LayoutSection>) -> Self {
-        Self { sections }
-    }
-}
 impl LayoutEngine for BasicLayout {
     type OutputLayout = BasicLayout;
     fn create_layout(max_width: usize, book: &Book) -> Self::OutputLayout {
@@ -38,5 +33,11 @@ impl LayoutEngine for BasicLayout {
 impl LayoutOutput for BasicLayout {
     fn get_all_sections(&self) -> &Vec<LayoutSection> {
         &self.sections
+    }
+}
+
+impl BasicLayout {
+    pub(crate) fn new(sections: Vec<LayoutSection>) -> Self {
+        Self { sections }
     }
 }
