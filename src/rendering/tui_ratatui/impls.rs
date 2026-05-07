@@ -117,6 +117,36 @@ impl<'a> RenderApp for RatatuiApp<'a> {
     }
 }
 
+impl<'a> RenderingEngine<'a> for RatatuiEngine {
+    type OutputRenderer = RatatuiApp<'a>;
+    type Error = std::io::Error;
+
+    fn render<L, P>(&mut self, books: &'a Vec<Book>) -> Result<Self::OutputRenderer, Self::Error>
+    where
+        L: LayoutEngine,
+        P: PaginationEngine<L, OutputPages = Vec<Page>>,
+    {
+        crossterm::terminal::enable_raw_mode()?;
+        let mut stdout = std::io::stdout();
+        crossterm::execute!(
+            stdout,
+            crossterm::terminal::Clear(crossterm::terminal::ClearType::All)
+        )?;
+        let backend = Terminal::new(CrosstermBackend::new(std::io::stdout()))?;
+
+        Ok(RatatuiApp {
+            backend,
+            state: AppState::Library,
+            books,
+            curr_book_pages: None,
+            curr_book_idx: 0,
+            should_quit: false,
+            byte_offset: 0,
+            curr_book_lookup: None,
+        })
+    }
+}
+
 impl<'a> RatatuiApp<'a> {
     fn get_current_page_no(&self) -> Result<usize, std::io::Error> {
         // TODO: Bugfix: if the size of a terminal changes when we have set some byteoffset for a
@@ -241,35 +271,5 @@ impl<'a> RatatuiApp<'a> {
             frame.render_widget(paragraph, frame.area());
         })?;
         Ok(())
-    }
-}
-
-impl<'a> RenderingEngine<'a> for RatatuiEngine {
-    type OutputRenderer = RatatuiApp<'a>;
-    type Error = std::io::Error;
-
-    fn render<L, P>(&mut self, books: &'a Vec<Book>) -> Result<Self::OutputRenderer, Self::Error>
-    where
-        L: LayoutEngine,
-        P: PaginationEngine<L, OutputPages = Vec<Page>>,
-    {
-        crossterm::terminal::enable_raw_mode()?;
-        let mut stdout = std::io::stdout();
-        crossterm::execute!(
-            stdout,
-            crossterm::terminal::Clear(crossterm::terminal::ClearType::All)
-        )?;
-        let backend = Terminal::new(CrosstermBackend::new(std::io::stdout()))?;
-
-        Ok(RatatuiApp {
-            backend,
-            state: AppState::Library,
-            books,
-            curr_book_pages: None,
-            curr_book_idx: 0,
-            should_quit: false,
-            byte_offset: 0,
-            curr_book_lookup: None,
-        })
     }
 }
