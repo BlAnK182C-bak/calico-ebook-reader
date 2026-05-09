@@ -25,6 +25,9 @@ pub(crate) const EPUB_DIR_NAME: &str = "CER_Epubs";
 pub(crate) const EPUB_MIMETYPE: &str = "application/epub+zip";
 pub(crate) const EPUB_ENTRY_POINT: &str = "META-INF/container.xml";
 
+// TUI constants
+pub(crate) const TUI_PADDING: usize = 1;
+
 // file path related constants
 pub(crate) static APPLICATION_DATA_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
     extract_project_dir(APPLICATION_DOMAIN, APPLICATION_AUTHOR, APPLICATION_NAME)
