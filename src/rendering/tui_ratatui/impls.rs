@@ -2,14 +2,14 @@ use crossterm::event::{Event, KeyCode};
 use ratatui::{
     Terminal,
     prelude::CrosstermBackend,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Padding, Paragraph},
 };
 
 use super::models::RatatuiApp;
 use super::models::RatatuiEngine;
 use crate::{
     common::{
-        constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME},
+        constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME, TUI_PADDING},
         models::{book::Book, bookmarks::Bookmarks},
     },
     layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
@@ -166,10 +166,11 @@ impl<'a> RatatuiApp<'a> {
     fn paginate_current_book(&mut self) -> Result<Vec<Page>, std::io::Error> {
         let book = &self.books[self.curr_book_idx];
         let size = self.backend.size()?;
-        let layout = layoutize::<BasicLayout>(book, (size.width - 2) as usize);
+        let layout =
+            layoutize::<BasicLayout>(book, ((size.width - 2) as usize) - (2 * TUI_PADDING));
         Ok(paginate::<BasicLayout, BasicPagination>(
             layout,
-            (size.height - 2) as usize,
+            ((size.height - 2) as usize) - (2 * TUI_PADDING),
         ))
     }
 
@@ -221,6 +222,7 @@ impl<'a> RatatuiApp<'a> {
             let list = ratatui::widgets::List::new(items).block(
                 Block::default()
                     .borders(Borders::ALL)
+                    .padding(Padding::uniform(TUI_PADDING as u16))
                     .title(LIBRARY_LIST_SECTION_NAME)
                     .title_bottom(format!(" Total books: {} ", self.books.len())),
             );
@@ -232,6 +234,7 @@ impl<'a> RatatuiApp<'a> {
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
+                        .padding(Padding::uniform(TUI_PADDING as u16))
                         .title(LIBRARY_METADATA_SECTION_NAME),
                 )
                 .wrap(ratatui::widgets::Wrap { trim: true });
@@ -265,8 +268,9 @@ impl<'a> RatatuiApp<'a> {
             let paragraph = Paragraph::new(page_widget_collection).block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(book.get_title())
-                    .title_bottom(format!("Page: {} / {}", page_no + 1, total_pages)),
+                    .padding(Padding::uniform(TUI_PADDING as u16))
+                    .title(format!(" {} ", book.get_title()))
+                    .title_bottom(format!(" Page: {} / {} ", page_no + 1, total_pages)),
             );
             frame.render_widget(paragraph, frame.area());
         })?;
