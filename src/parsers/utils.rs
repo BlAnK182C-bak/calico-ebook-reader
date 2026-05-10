@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, OnceLock};
 use uuid::Uuid;
 
 use crate::common::constants::{BOOKMAP_FILE_PATH, EPUB_DIR_PATH};
@@ -26,7 +27,12 @@ pub(crate) fn get_book_folder_path(
     }
 }
 
+static BOOKMAP_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
 pub(crate) fn get_book_uuid(file_name: &str) -> Result<Uuid, std::io::Error> {
+    let lock = BOOKMAP_LOCK.get_or_init(|| Mutex::new(()));
+    let _guard = lock.lock().unwrap();
+
     let bookmap_exists = fs::exists(BOOKMAP_FILE_PATH.to_path_buf())?;
     if bookmap_exists {
         let file_contents = fs::read_to_string(BOOKMAP_FILE_PATH.to_path_buf())?;

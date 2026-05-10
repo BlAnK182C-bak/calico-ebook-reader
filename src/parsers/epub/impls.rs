@@ -100,8 +100,6 @@ impl RawEpub {
             .insert(String::from(key), String::from(value));
     }
 
-    // NOTE: using std::io::Error instead of just Error and importing at top level here because XmlEvent throws it's own Error object.
-    // This is simply to avoid confusion and so that I have some peace of mind while writing this code.
     pub(super) fn validate(&mut self) -> Result<(), std::io::Error> {
         let edp = match self.get_extracted_directory_path() {
             Some(edp) => PathBuf::from(edp),
