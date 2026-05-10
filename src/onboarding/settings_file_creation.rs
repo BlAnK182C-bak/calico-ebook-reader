@@ -1,7 +1,7 @@
 use std::fs::{self, File};
 
 use crate::common::{
-    constants::SETTINGS_FILE_PATH,
+    constants::{BOOKMAP_FILE_PATH, BOOKMARKS_FILE_PATH, SETTINGS_FILE_PATH},
     models::settings::{Settings, SourceSettings},
 };
 
@@ -33,11 +33,33 @@ fn create_source_setting(settings: &Settings) -> Result<(), std::io::Error> {
     Ok(())
 }
 
+pub(super) fn create_bookmarks_file() -> Result<(), std::io::Error> {
+    if BOOKMARKS_FILE_PATH.exists() {
+        println!("create_settings_file: Settings file already exists. Skipping creation");
+        Ok(())
+    } else {
+        File::create(BOOKMARKS_FILE_PATH.to_path_buf())?;
+        Ok(())
+    }
+}
+
+pub(super) fn create_bookmap_file() -> Result<(), std::io::Error> {
+    if BOOKMAP_FILE_PATH.exists() {
+        println!("create_settings_file: Settings file already exists. Skipping creation");
+        Ok(())
+    } else {
+        File::create(BOOKMARKS_FILE_PATH.to_path_buf())?;
+        Ok(())
+    }
+}
+
 pub(super) fn settings_pipeline() -> Result<(), std::io::Error> {
     println!("Running the settings onboarding pipeline...");
     create_settings_file()?;
     let home = std::env::var("HOME").map_err(std::io::Error::other)?;
     let ss = SourceSettings::new(vec![format!("{}/Downloads/", home)]);
     create_source_setting(&Settings::new(ss))?;
+    create_bookmarks_file()?;
+    create_bookmap_file()?;
     Ok(())
 }
