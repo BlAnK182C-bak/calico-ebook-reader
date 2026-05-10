@@ -11,7 +11,7 @@ pub(crate) const APPLICATION_AUTHOR: &str = "Blank";
 // settings based constants
 pub(crate) const SETTINGS_FILENAME: &str = "settings.toml";
 pub(crate) const BOOKMARKS_FILENAME: &str = "bookmarks.toml";
-pub(crate) const BOOK_MAP_FILENAME: &str = "book_map.json";
+pub(crate) const BOOK_MAP_FILENAME: &str = "bookmap.json";
 
 // reader constants
 pub(crate) const LIBRARY_LIST_SECTION_NAME: &str = " Library ";

@@ -16,8 +16,9 @@ use crate::common::models::book::Book;
 use crate::common::models::book::{BookMetadata, BookSection};
 use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::models::ParserEngine;
-use crate::parsers::utils::get_file_type_from_path;
-use crate::parsers::utils::{get_book_folder_name, get_file_name_from_path};
+use crate::parsers::utils::{
+    get_book_folder_path, get_file_name_from_path, get_file_type_from_path,
+};
 
 impl ParserEngine for RawEpub {
     fn parse(&mut self) -> Result<Book, Box<dyn std::error::Error>> {
@@ -182,7 +183,7 @@ impl RawEpub {
     pub(super) fn extract_epub_file(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let epub_file = fs::File::open(self.get_file_path())?;
         let file_name = get_file_name_from_path(self.get_file_path())?;
-        let curr_book_path = get_book_folder_name(BookFileTypes::EpubFileType, file_name)?;
+        let curr_book_path = get_book_folder_path(BookFileTypes::EpubFileType, file_name)?;
 
         let file_exists = fs::exists(&curr_book_path)?;
         if file_exists {

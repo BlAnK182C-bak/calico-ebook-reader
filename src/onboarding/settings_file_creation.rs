@@ -35,7 +35,7 @@ fn create_source_setting(settings: &Settings) -> Result<(), std::io::Error> {
 
 pub(super) fn create_bookmarks_file() -> Result<(), std::io::Error> {
     if BOOKMARKS_FILE_PATH.exists() {
-        println!("create_settings_file: Settings file already exists. Skipping creation");
+        println!("create_bookmarks_file: Bookmarks file already exists. Skipping creation");
         Ok(())
     } else {
         File::create(BOOKMARKS_FILE_PATH.to_path_buf())?;
@@ -45,10 +45,10 @@ pub(super) fn create_bookmarks_file() -> Result<(), std::io::Error> {
 
 pub(super) fn create_bookmap_file() -> Result<(), std::io::Error> {
     if BOOKMAP_FILE_PATH.exists() {
-        println!("create_settings_file: Settings file already exists. Skipping creation");
+        println!("create_bookmap_file: Bookmap file already exists. Skipping creation");
         Ok(())
     } else {
-        File::create(BOOKMARKS_FILE_PATH.to_path_buf())?;
+        File::create(BOOKMAP_FILE_PATH.to_path_buf())?;
         Ok(())
     }
 }
