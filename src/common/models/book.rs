@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
 use super::filetypes::BookFileTypes;
 
 pub(crate) struct BookMetadata {
@@ -25,6 +28,12 @@ pub(crate) struct Book {
     book_title: String,
     readable_metadata: String,
     book_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct BookMap {
+    uuid: Uuid,
+    filename: String,
 }
 
 impl BookMetadata {
@@ -128,5 +137,18 @@ impl Book {
 
     pub(crate) fn get_id(&self) -> &str {
         &self.book_id
+    }
+}
+
+impl BookMap {
+    pub(crate) fn new(uuid: Uuid, filename: String) -> Self {
+        Self { uuid, filename }
+    }
+    pub(crate) fn get_uuid(&self) -> Uuid {
+        self.uuid
+    }
+
+    pub(crate) fn get_filename(&self) -> &str {
+        &self.filename
     }
 }
