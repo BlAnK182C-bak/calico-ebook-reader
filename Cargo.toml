@@ -7,7 +7,7 @@ edition = "2024"
 zip = "8.4.0"
 directories = "6.0.0"
 xml = "1.2.1"
-indexmap = "2.14.0"
+indexmap = {version= "2.14.0", features=['rayon']}
 ratatui = "0.30.0"
 crossterm = "0.29.0"
 toml = "1.1.2"
