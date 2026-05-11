@@ -5,6 +5,8 @@ pub(crate) mod pagination;
 pub(crate) mod parsers;
 pub(crate) mod rendering;
 
+use rayon::prelude::*;
+
 use crate::{
     common::{
         models::{book::Book, filetypes::BookFileTypes},
@@ -31,21 +33,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Onboarding pipeline finished running successfully!");
 
     let all_book_paths_and_extensions = scan_sources_for_books().unwrap();
-    let mut all_books: Vec<Book> = Vec::new();
 
-    // TODO: Either change this for loop to use parallelism - currently parsing time increases as
-    // number of books increase. We need to employ parallelism to solve this.
-    // Archive extraction - I/O bound - use tokio
-    // Parsing data extraction - CPU bound - use rayon
-    for (book_path, book_type) in all_book_paths_and_extensions {
-        match book_type {
+    let all_books: Vec<Book> = all_book_paths_and_extensions
+        .par_iter()
+        .filter_map(|(book_path, book_type)| match book_type {
             BookFileTypes::EpubFileType => {
                 let mut epub = RawEpub::new(&book_path);
-                all_books.push(epub.parse()?);
+                epub.parse().ok()
             }
-            _ => {}
-        }
-    }
+            _ => None,
+        })
+        .collect();
+
     let mut engine = RatatuiEngine;
     let mut app: RatatuiApp = engine.render::<BasicLayout, BasicPagination>(&all_books)?;
     app.run()?;
