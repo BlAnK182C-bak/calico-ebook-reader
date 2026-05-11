@@ -39,47 +39,6 @@ pub(super) fn extract_full_path(container_xml_parser: &mut EventReader<File>) ->
     None
 }
 
-pub(super) fn extract_metadata_value<'a>(
-    content_obf_parser: &mut EventReader<File>,
-    tag_name: &'a str,
-    attr_name: Option<&'a str>,
-    attr_value: Option<&'a str>,
-) -> Option<String> {
-    let mut inside_metadata_tag = false;
-    let iter = content_obf_parser;
-
-    while let Ok(event) = iter.next() {
-        match event {
-            XmlEvent::StartElement { ref name, .. } if name.local_name == "metadata" => {
-                inside_metadata_tag = true;
-            }
-            XmlEvent::EndElement { ref name } if name.local_name == "metadata" => {
-                break;
-            }
-
-            XmlEvent::StartElement {
-                ref name,
-                ref attributes,
-                ..
-            } if inside_metadata_tag && name.local_name == tag_name => {
-                let matches = match (attr_name, attr_value) {
-                    (Some(a_name), Some(a_val)) => attributes
-                        .iter()
-                        .any(|attr| attr.name.local_name == a_name && attr.value == a_val),
-                    _ => true,
-                };
-
-                if matches && let Ok(XmlEvent::Characters(text)) = iter.next() {
-                    return Some(text);
-                }
-            }
-
-            _ => {}
-        }
-    }
-    None
-}
-
 // god help our code readability
 pub(super) fn validate_mimetype(path: &str) -> Result<bool, std::io::Error> {
     let mut mimetype_file = File::open(Path::new(path).join("mimetype"))?;
