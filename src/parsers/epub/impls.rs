@@ -20,6 +20,9 @@ use crate::parsers::utils::{
     get_book_folder_path, get_file_name_from_path, get_file_type_from_path,
 };
 
+// TODO: When I load books, all of them get loaded into memory - instead cache loaded books in a
+// binary maybe and call said binary when someone selects a book
+
 impl ParserEngine for RawEpub {
     fn parse(&mut self) -> Result<Book, Box<dyn std::error::Error>> {
         self.extract_epub_file()?;
