@@ -8,8 +8,8 @@ use zip::ZipArchive;
 
 use super::models::RawEpub;
 use super::utils::{
-    extract_attr_value_from_attrs, extract_full_path, extract_metadata_value, validate_content_obf,
-    validate_meta_inf, validate_mimetype,
+    extract_attr_value_from_attrs, extract_full_path, validate_content_obf, validate_meta_inf,
+    validate_mimetype,
 };
 use crate::common::constants::EPUB_ENTRY_POINT;
 use crate::common::models::book::Book;
@@ -209,117 +209,134 @@ impl RawEpub {
                 }
             };
 
-            // TODO: Multithreading may not be the right answer here ol' chum. A simple for loop
-            // might help.
-            thread::scope(|scope| {
-                let author_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "creator",
-                        Some("role"),
-                        Some("aut"),
-                    )
-                });
+            let mut event_reader = EventReader::new(File::open(&rf).unwrap());
 
-                let title_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "title",
-                        None,
-                        None,
-                    )
-                });
+            let mut title: String = String::from("Unknown Title");
+            let mut author: Option<String> = Some(String::from("Unknown author"));
+            let mut description: Option<String> = Some(String::from("N/A"));
+            let mut series: Option<String> = Some(String::from("N/A"));
+            let mut series_order_number: Option<usize> = Some(0usize);
+            let mut subjects: Option<Vec<String>> = Some(Vec::new());
+            let mut isbn: Option<String> = Some(String::from("N/A"));
+            let mut publisher: Option<String> = Some(String::from("N/A"));
+            let mut rights: Option<String> = Some(String::from("N/A"));
 
-                let desc_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "description",
-                        None,
-                        None,
-                    )
-                });
+            let mut is_inside_metadata = false;
 
-                // TODO: Not all epubs have a series tag - most of them infact have a meta tag with
-                // series as a name
-                let series_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "series",
-                        None,
-                        None,
-                    )
-                });
+            loop {
+                match event_reader.next() {
+                    Ok(XmlEvent::StartElement { ref name, .. })
+                        if name.local_name == "metadata" =>
+                    {
+                        is_inside_metadata = true;
+                    }
 
-                // TODO: Not all epubs have a series_index tag - most of them infact have a meta tag with
-                // series_index as a name
-                let series_index_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "series_index",
-                        None,
-                        None,
-                    )
-                });
+                    Ok(XmlEvent::StartElement { ref name, .. })
+                        if is_inside_metadata && name.local_name == "title" =>
+                    {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            title = text;
+                        }
+                    }
 
-                let subject_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "subject",
-                        None,
-                        None,
-                    )
-                });
+                    Ok(XmlEvent::StartElement { ref name, .. })
+                        if is_inside_metadata && name.local_name == "description" =>
+                    {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            description = Some(text);
+                        }
+                    }
 
-                let isbn_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "identifier",
-                        Some("scheme"),
-                        Some("ISBN"),
-                    )
-                });
+                    Ok(XmlEvent::StartElement {
+                        ref name,
+                        ref attributes,
+                        ..
+                    }) if is_inside_metadata && name.local_name == "creator" => {
+                        let has_aut_role = attributes.iter().any(|a| a.value == "aut");
 
-                let pub_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "publisher",
-                        None,
-                        None,
-                    )
-                });
+                        if has_aut_role && let Ok(XmlEvent::Characters(text)) = event_reader.next()
+                        {
+                            author = Some(text);
+                        }
+                    }
 
-                let rights_handle = scope.spawn(|| {
-                    extract_metadata_value(
-                        &mut EventReader::new(File::open(&rf).unwrap()),
-                        "rights",
-                        None,
-                        None,
-                    )
-                });
+                    Ok(XmlEvent::StartElement { ref name, .. }) if name.local_name == "subject" => {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            subjects.get_or_insert_with(Vec::new).push(text);
+                        }
+                    }
 
-                Ok(BookMetadata::new(
-                    title_handle
-                        .join()
-                        .unwrap()
-                        .unwrap_or_else(|| "Unknown Title".to_string()),
-                    author_handle.join().unwrap(),
-                    desc_handle.join().unwrap(),
-                    series_handle.join().unwrap(),
-                    series_index_handle
-                        .join()
-                        .unwrap()
-                        .and_then(|series_order| series_order.parse::<usize>().ok()),
-                    subject_handle.join().unwrap().map(|full_subject| {
-                        full_subject
-                            .split(",")
-                            .map(|subject| subject.trim().to_string())
-                            .collect()
-                    }),
-                    isbn_handle.join().unwrap(),
-                    pub_handle.join().unwrap(),
-                    rights_handle.join().unwrap(),
-                ))
-            })
+                    Ok(XmlEvent::StartElement { ref name, .. })
+                        if is_inside_metadata && name.local_name == "publisher" =>
+                    {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            publisher = Some(text);
+                        }
+                    }
+
+                    Ok(XmlEvent::StartElement {
+                        ref name,
+                        attributes,
+                        ..
+                    }) if is_inside_metadata && name.local_name == "identifier" => {
+                        let has_isbn = attributes.iter().any(|a| a.value == "isbn");
+                        if has_isbn && let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            isbn = Some(text);
+                        }
+                    }
+
+                    Ok(XmlEvent::StartElement { ref name, .. })
+                        if is_inside_metadata && name.local_name == "rights" =>
+                    {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
+                            rights = Some(text);
+                        }
+                    }
+
+                    Ok(XmlEvent::StartElement {
+                        ref name,
+                        ref attributes,
+                        ..
+                    }) if is_inside_metadata && name.local_name == "meta" => {
+                        let meta_name = attributes
+                            .iter()
+                            .find(|a| a.name.local_name == "name")
+                            .map(|a| &a.value);
+
+                        let meta_content = attributes
+                            .iter()
+                            .find(|a| a.name.local_name == "content")
+                            .map(|a| &a.value);
+
+                        if let (Some(n), Some(c)) = (meta_name, meta_content) {
+                            match n.as_str() {
+                                "calibre:series" => series = Some(c.into()),
+                                "calibre:series_index" => {
+                                    series_order_number = Some(c.parse::<f32>().unwrap() as usize)
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+
+                    Ok(XmlEvent::EndDocument) => {
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+
+            Ok(BookMetadata::new(
+                title,
+                author,
+                description,
+                series,
+                series_order_number,
+                subjects,
+                isbn,
+                publisher,
+                rights,
+            ))
         } else {
             Err(std::io::Error::other(
                 "extract_epub_metadata: This book is not validated",
