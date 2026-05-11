@@ -14,19 +14,13 @@ I tested these on 94 book files downloaded from gutenberg.org - ranging from a w
 ## Test cases
 
 1. No config or app directory created, no books present in default source
-Files: `logs/parallel-brand-new-no-books-results.txt`, `logs/sequential-brand-new-no-books-results.txt`
-
-Surprisingly the sequential operation is better here but not at a big enough margin to debate which one is better (~300-400ms). In my testing, the change was not very noticeable. By pure metrics, sequential won here but other parallelism may also be favored as an alternative
+Files: `logs/parallel-brand-new-no-books-results.txt`, `logs/sequential-brand-new-no-books-results.txt` | Surprisingly the sequential operation is better here but not at a big enough margin to debate which one is better (~300-400ms). In my testing, the change was not very noticeable. By pure metrics, sequential won here but other parallelism may also be favored as an alternative
 
 2. No config or app directory created, 94 books present in default source
-File: `logs/parallel-brand-new-books-present-results.txt`, `logs/sequential-brand-new-books-present-results.txt`
-
-Here is where parallelism has a marginal improvement (~8s faster). Although CPU overhead has increased due to the number of threads we are using - the performance gain is considerable. This will also scale as books for users grow
+File: `logs/parallel-brand-new-books-present-results.txt`, `logs/sequential-brand-new-books-present-results.txt` | Here is where parallelism has a marginal improvement (~8s faster). Although CPU overhead has increased due to the number of threads we are using - the performance gain is considerable. This will also scale as books for users grow
 
 3. existing config or app directory already created, 94 books present in default source
-File: `logs/parallel-already-existing-results.txt`, `logs/sequential-already-existing-results.txt`
-
-Parallel wins here again (~10s faster). CPU utilized is 0.1% lesser in case of sequential but that is expected as we are using more threads in the parallel program. The usage is not astronomically bigger so we can choose to not worry about it right now. It is to be seen how CPU usage increases as books increase.
+File: `logs/parallel-already-existing-results.txt`, `logs/sequential-already-existing-results.txt` | Parallel wins here again (~10s faster). CPU utilized is 0.1% lesser in case of sequential but that is expected as we are using more threads in the parallel program. The usage is not astronomically bigger so we can choose to not worry about it right now. It is to be seen how CPU usage increases as books increase.
 
 ## Conclusion
 
