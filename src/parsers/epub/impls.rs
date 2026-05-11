@@ -111,38 +111,11 @@ impl RawEpub {
             }
         };
 
-        let validation_result = thread::scope(|scope| -> Result<bool, std::io::Error> {
-            let mtv_thread_scope = scope.spawn(|| -> Result<bool, std::io::Error> {
-                let res = validate_mimetype(edp.to_string_lossy().as_ref())?;
-                Ok(res)
-            });
+        let is_mimetype_valid = validate_mimetype(&edp.to_string_lossy())?;
+        let is_meta_inf_valid = validate_meta_inf(&edp.to_string_lossy())?;
+        let is_content_obf_valid = validate_content_obf(&edp.to_string_lossy())?;
 
-            let mi_thread_scope = scope.spawn(|| -> Result<bool, std::io::Error> {
-                let res = validate_meta_inf(edp.to_string_lossy().as_ref())?;
-                Ok(res)
-            });
-
-            let cobf_thread_scope = scope.spawn(|| -> Result<bool, std::io::Error> {
-                let res = validate_content_obf(edp.to_string_lossy().as_ref())?;
-                Ok(res)
-            });
-
-            let is_mimetype_valid: bool = mtv_thread_scope
-                .join()
-                .map_err(|_| std::io::Error::other("Mimetype validation ran into an error"))??;
-
-            let is_meta_inf_valid: bool = mi_thread_scope
-                .join()
-                .map_err(|_| std::io::Error::other("META-INF validation ran into an error"))??;
-
-            let is_content_obf_valid: bool = cobf_thread_scope
-                .join()
-                .map_err(|_| std::io::Error::other("content.obf validation ran into an error"))??;
-
-            Ok(is_meta_inf_valid && is_mimetype_valid && is_content_obf_valid)
-        });
-
-        self.set_is_validated(validation_result?);
+        self.set_is_validated(is_meta_inf_valid && is_mimetype_valid && is_content_obf_valid);
         Ok(())
     }
 
