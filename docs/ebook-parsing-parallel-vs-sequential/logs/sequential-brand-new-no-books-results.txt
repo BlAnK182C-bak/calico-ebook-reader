@@ -1,0 +1,32 @@
+# started on Mon May 11 10:21:59 2026
+
+
+ Performance counter stats for '/home/abhinavks/Code/calico/target/release/calico-ebook-reader-seq':
+
+                 0      context-switches:u               #      0.0 cs/sec  cs_per_second     
+                 0      cpu-migrations:u                 #      0.0 migrations/sec  migrations_per_second
+               267      page-faults:u                    # 106449.2 faults/sec  page_faults_per_second
+              2.51 msec task-clock:u                     #      0.0 CPUs  CPUs_utilized       
+             6,927      cpu_core/branch-misses/u         #      0.7 %  branch_miss_rate       
+          9,56,621      cpu_core/branches/u              #    381.4 M/sec  branch_frequency   
+         23,26,584      cpu_core/cpu-cycles/u            #      0.9 GHz  cycles_frequency     
+         47,20,330      cpu_core/instructions/u          #      2.0 instructions  insn_per_cycle
+     <not counted>      cpu_atom/branch-misses/u         #      nan %  branch_miss_rate         (0.00%)
+     <not counted>      cpu_atom/branches/u              #      nan M/sec  branch_frequency     (0.00%)
+     <not counted>      cpu_atom/cpu-cycles/u            #      nan GHz  cycles_frequency       (0.00%)
+     <not counted>      cpu_atom/instructions/u          #      nan instructions  insn_per_cycle  (0.00%)
+             TopdownL1 (cpu_core)                        #      6.0 %  tma_bad_speculation    
+                                                         #     27.7 %  tma_frontend_bound     
+                                                         #     32.9 %  tma_backend_bound      
+                                                         #     33.3 %  tma_retiring           
+             TopdownL1 (cpu_atom)                        #      nan %  tma_backend_bound        (0.00%)
+                                                         #      nan %  tma_frontend_bound       (0.00%)
+                                                         #      nan %  tma_bad_speculation    
+                                                         #      nan %  tma_retiring             (0.00%)
+
+       0.932901819 seconds time elapsed
+
+       0.000000000 seconds user
+       0.003605000 seconds sys
+
+

@@ -1,0 +1,32 @@
+# started on Mon May 11 10:21:29 2026
+
+
+ Performance counter stats for '/home/abhinavks/Code/calico/target/release/calico-ebook-reader-parallel':
+
+                 0      context-switches:u               #      0.0 cs/sec  cs_per_second     
+                 0      cpu-migrations:u                 #      0.0 migrations/sec  migrations_per_second
+               365      page-faults:u                    #  69352.1 faults/sec  page_faults_per_second
+              5.26 msec task-clock:u                     #      0.0 CPUs  CPUs_utilized       
+                 0      cpu_core/branch-misses/u         #      nan %  branch_miss_rate         (4.77%)
+                 0      cpu_core/branches/u              #      0.0 M/sec  branch_frequency     (4.77%)
+                 0      cpu_core/cpu-cycles/u            #      0.0 GHz  cycles_frequency       (4.77%)
+                 0      cpu_core/instructions/u          #      nan instructions  insn_per_cycle  (4.77%)
+            20,437      cpu_atom/branch-misses/u         #      5.9 %  branch_miss_rate         (28.77%)
+          4,69,078      cpu_atom/branches/u              #     89.1 M/sec  branch_frequency     (71.39%)
+         32,69,129      cpu_atom/cpu-cycles/u            #      0.6 GHz  cycles_frequency       (99.09%)
+         58,06,974      cpu_atom/instructions/u          #      1.8 instructions  insn_per_cycle
+             TopdownL1 (cpu_core)                        #      0.0 %  tma_bad_speculation    
+                                                         #      nan %  tma_frontend_bound       (4.77%)
+                                                         #      nan %  tma_backend_bound      
+                                                         #      nan %  tma_retiring             (4.77%)
+             TopdownL1 (cpu_atom)                        #     25.9 %  tma_backend_bound        (80.56%)
+                                                         #     20.6 %  tma_frontend_bound       (35.09%)
+                                                         #     53.6 %  tma_bad_speculation    
+                                                         #      0.0 %  tma_retiring             (1.35%)
+
+       1.359417232 seconds time elapsed
+
+       0.000983000 seconds user
+       0.007765000 seconds sys
+
+

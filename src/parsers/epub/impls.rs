@@ -190,11 +190,10 @@ impl RawEpub {
             );
         } else {
             fs::create_dir(&curr_book_path)?;
+            let mut archive = ZipArchive::new(epub_file)?;
+            archive.extract(&curr_book_path)?;
         }
         self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
-
-        let mut archive = ZipArchive::new(epub_file)?;
-        archive.extract(curr_book_path)?;
         Ok(())
     }
 
