@@ -1,8 +1,8 @@
 use indexmap::IndexMap;
+use rayon::prelude::*;
 use std::fs::{self, File};
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use std::thread;
 use xml::reader::{EventReader, XmlEvent};
 use zip::ZipArchive;
 
@@ -56,10 +56,12 @@ impl RawEpub {
         self.is_validated
     }
 
-    pub(super) fn get_rootfile_path(&self) -> Option<&str> {
+    pub(super) fn get_rootfile_path(&self) -> Result<&str, std::io::Error> {
         match &self.rootfile_path {
-            Some(value) => Some(value.as_str()),
-            None => None,
+            Some(value) => Ok(value.as_str()),
+            None => Err(std::io::Error::other(
+                "get_rootfile_path: Rootfile path has not been set",
+            )),
         }
     }
 
@@ -172,17 +174,9 @@ impl RawEpub {
 
     pub(super) fn extract_epub_metadata(&self) -> Result<BookMetadata, std::io::Error> {
         if self.get_is_validated() {
-            let rf = match self.get_rootfile_path() {
-                Some(rootfile_path) => rootfile_path,
-                None => {
-                    return Err(std::io::Error::new(
-                        ErrorKind::NotFound,
-                        "extract_epub_metadata: Rootfile doesn't exist",
-                    ));
-                }
-            };
+            let rf = self.get_rootfile_path()?;
 
-            let mut event_reader = EventReader::new(File::open(&rf).unwrap());
+            let mut event_reader = EventReader::new(File::open(rf).unwrap());
 
             let mut title: String = String::from("Unknown Title");
             let mut author: Option<String> = Some(String::from("Unknown author"));
@@ -225,10 +219,7 @@ impl RawEpub {
                         ref attributes,
                         ..
                     }) if is_inside_metadata && name.local_name == "creator" => {
-                        let has_aut_role = attributes.iter().any(|a| a.value == "aut");
-
-                        if has_aut_role && let Ok(XmlEvent::Characters(text)) = event_reader.next()
-                        {
+                        if let Ok(XmlEvent::Characters(text)) = event_reader.next() {
                             author = Some(text);
                         }
                     }
@@ -317,19 +308,11 @@ impl RawEpub {
         }
     }
     pub(super) fn map_spine_to_manifest(&mut self) -> Result<(), std::io::Error> {
-        let rf = match self.get_rootfile_path() {
-            Some(rootfile_path) => rootfile_path,
-            None => {
-                return Err(std::io::Error::new(
-                    ErrorKind::NotFound,
-                    "map_spine_to_manifest: Rootfile path not found.",
-                ));
-            }
-        };
+        let rf = self.get_rootfile_path()?;
 
         let mut spine_ids: Vec<String> = Vec::new();
         let mut manifest_items: Vec<(String, String)> = Vec::new(); // (id, href)
-        let mut content_obf_parser = EventReader::new(File::open(&rf)?);
+        let mut content_obf_parser = EventReader::new(File::open(rf)?);
 
         let mut is_inside_spine = false;
         let mut is_inside_manifest = false;
@@ -389,56 +372,71 @@ impl RawEpub {
         if self.get_is_validated() {
             let mut all_book_sections: Vec<BookSection> = Vec::new();
             self.map_spine_to_manifest()?;
-            for (spine_id, path_to_file) in self.get_spine_to_manifest_map() {
-                let mut path = match self.get_rootfile_path() {
-                    Some(rootfile_path) => PathBuf::from(rootfile_path)
-                        .parent()
-                        .map(|p| p.to_path_buf())
-                        .ok_or_else(|| {
-                            std::io::Error::other(
-                                "extract_epub_content: Could not get parent directory of rootfile",
-                            )
-                        })?,
-                    None => {
-                        return Err(std::io::Error::other(
-                            "extract_epub_content: No extracted directory path.",
-                        ));
-                    }
-                };
+            let manifest = self.get_spine_to_manifest_map();
 
-                path.push(path_to_file);
-                let mut section_parser = EventReader::new(File::open(&path).map_err(|err| {
-                    std::io::Error::other(format!("Failed to open file: {:?}: {}", path, err))
-                })?);
-                let mut section_content = String::new();
-                let mut is_inside_body = false;
-                loop {
-                    match section_parser.next() {
-                        Ok(XmlEvent::StartElement { name, .. }) if name.local_name == "body" => {
-                            is_inside_body = true;
-                        }
+            let base_dir_path = PathBuf::from(self.get_rootfile_path()?)
+                .parent()
+                .map(|p| p.to_path_buf()).ok_or_else(|| std::io::Error::other("extract_epub_content: rootfile_path could not be mapped to PathBuf correctly"))?;
 
-                        Ok(XmlEvent::EndElement { name }) if name.local_name == "body" => {
-                            break;
-                        }
+            // you paid for the whole CPU, and you bet your sweet bippy this might use all of it
+            // TODO: How the fuck does one achieve concurrency without risk of excess CPU thread
+            // usage :")) - I guess you don't huh
+            // Still I don't like that we are using n * k amount of threads possible at a time where
+            // n is number of books and k the number of chapters
 
-                        Ok(XmlEvent::Characters(text)) if is_inside_body => {
-                            section_content.push_str(&text);
-                        }
+            let results: Vec<Result<BookSection, std::io::Error>> = manifest
+                .par_iter()
+                .map(
+                    |(spine_id, path_to_file)| -> Result<BookSection, std::io::Error> {
+                        let path = base_dir_path.join(path_to_file);
+                        let mut section_parser =
+                            EventReader::new(File::open(&path).map_err(|err| {
+                                std::io::Error::other(format!(
+                                    "Failed to open file: {:?}: {}",
+                                    path, err
+                                ))
+                            })?);
+                        let mut section_content = String::new();
+                        let mut is_inside_body = false;
+                        loop {
+                            match section_parser.next() {
+                                Ok(XmlEvent::StartElement { name, .. })
+                                    if name.local_name == "body" =>
+                                {
+                                    is_inside_body = true;
+                                }
 
-                        Ok(XmlEvent::EndElement { .. }) if is_inside_body => {
-                            section_content.push_str("\n");
-                        }
+                                Ok(XmlEvent::EndElement { name }) if name.local_name == "body" => {
+                                    break;
+                                }
 
-                        Ok(XmlEvent::EndDocument) => {
-                            break;
+                                Ok(XmlEvent::Characters(text)) if is_inside_body => {
+                                    section_content.push_str(&text);
+                                }
+
+                                Ok(XmlEvent::EndElement { .. }) if is_inside_body => {
+                                    section_content.push_str("\n");
+                                }
+
+                                Ok(XmlEvent::EndDocument) => {
+                                    break;
+                                }
+                                _ => {}
+                            }
                         }
-                        _ => {}
-                    }
-                }
-                let section = BookSection::new(String::from(spine_id), None, section_content);
-                all_book_sections.push(section);
+                        Ok(BookSection::new(
+                            String::from(spine_id),
+                            None,
+                            section_content,
+                        ))
+                    },
+                )
+                .collect();
+
+            for res in results {
+                all_book_sections.push(res?);
             }
+
             Ok(all_book_sections)
         } else {
             return Err(std::io::Error::other(
