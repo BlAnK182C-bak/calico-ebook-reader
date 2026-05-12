@@ -53,7 +53,7 @@ pub(super) fn create_bookmap_file() -> Result<(), std::io::Error> {
     }
 }
 
-pub(super) fn settings_pipeline() -> Result<(), std::io::Error> {
+pub(super) fn configs_pipeline() -> Result<(), std::io::Error> {
     println!("Running the settings onboarding pipeline...");
     create_settings_file()?;
     let home = std::env::var("HOME").map_err(std::io::Error::other)?;
