@@ -16,9 +16,7 @@ use crate::common::models::book::Book;
 use crate::common::models::book::{BookMetadata, BookSection};
 use crate::common::models::filetypes::BookFileTypes;
 use crate::parsers::models::ParserEngine;
-use crate::parsers::utils::{
-    get_book_folder_path, get_file_name_from_path, get_file_type_from_path,
-};
+use crate::parsers::utils::{get_book_folder_path, get_file_name_from_path};
 
 // TODO: When I load books, all of them get loaded into memory - instead cache loaded books in a
 // binary maybe and call said binary when someone selects a book
@@ -30,7 +28,7 @@ impl ParserEngine for RawEpub {
         self.init()?;
         let new_epub_metadata = self.extract_epub_metadata()?;
         let new_epub_sections = self.extract_epub_content()?;
-        let new_epub_file_type = get_file_type_from_path(self.get_file_path())?;
+        let new_epub_file_type = "epub";
 
         let book = Book::new(
             new_epub_metadata,

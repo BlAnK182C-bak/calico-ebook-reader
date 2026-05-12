@@ -15,7 +15,11 @@ fn create_settings_file() -> Result<(), std::io::Error> {
     }
 }
 
-fn create_source_setting(settings: &Settings) -> Result<(), std::io::Error> {
+fn create_source_setting() -> Result<(), std::io::Error> {
+    let home = std::env::var("HOME").map_err(std::io::Error::other)?;
+    let ss = SourceSettings::new(vec![format!("{}/Documents/", home)]);
+    let default_settings = &Settings::new(ss);
+
     let existing_content = fs::read_to_string(SETTINGS_FILE_PATH.to_path_buf())?;
     if !existing_content.trim().is_empty() {
         if let Ok(settings) = toml::from_str::<Settings>(&existing_content) {
@@ -28,7 +32,7 @@ fn create_source_setting(settings: &Settings) -> Result<(), std::io::Error> {
         }
     }
 
-    let contents = toml::to_string_pretty(settings).expect("Failed to serialize config");
+    let contents = toml::to_string_pretty(default_settings).expect("Failed to serialize config");
     fs::write(SETTINGS_FILE_PATH.to_path_buf(), contents)?;
     Ok(())
 }
@@ -53,12 +57,10 @@ pub(super) fn create_bookmap_file() -> Result<(), std::io::Error> {
     }
 }
 
-pub(super) fn settings_pipeline() -> Result<(), std::io::Error> {
-    println!("Running the settings onboarding pipeline...");
+pub(super) fn configs_pipeline() -> Result<(), std::io::Error> {
+    println!("Running the configs onboarding pipeline...");
     create_settings_file()?;
-    let home = std::env::var("HOME").map_err(std::io::Error::other)?;
-    let ss = SourceSettings::new(vec![format!("{}/Downloads/", home)]);
-    create_source_setting(&Settings::new(ss))?;
+    create_source_setting()?;
     create_bookmarks_file()?;
     create_bookmap_file()?;
     Ok(())
