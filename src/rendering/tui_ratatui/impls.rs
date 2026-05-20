@@ -10,7 +10,7 @@ use super::models::RatatuiEngine;
 use crate::{
     common::{
         constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME, TUI_PADDING},
-        models::{book::Book, settings::Bookmarks},
+        models::{book::Book, bookmarks::Bookmarks},
     },
     layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
     pagination::{
