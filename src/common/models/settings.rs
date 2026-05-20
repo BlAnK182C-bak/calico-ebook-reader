@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::common::constants::BOOKMARKS_FILE_PATH;
-
+use crate::common::{constants::BOOKMARKS_FILE_PATH, models::filetypes::BookFileTypes};
 #[derive(Deserialize, Serialize)]
 pub(crate) struct Settings {
     sources: SourceSettings,
@@ -106,5 +105,13 @@ impl<'a> BookMap<'a> {
 
     pub(crate) fn get_filename(&self) -> &str {
         &self.filename
+    }
+
+    pub(crate) fn get_filepath(&self) -> &str {
+        self.filepath
+    }
+
+    pub(crate) fn get_filetype(&self) -> BookFileTypes {
+        BookFileTypes::new(self.filetype)
     }
 }
