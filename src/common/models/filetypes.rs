@@ -10,4 +10,11 @@ impl BookFileTypes {
             _ => BookFileTypes::UnknownFileType,
         }
     }
+
+    pub(crate) fn stringified_name(&self) -> &str {
+        match &self {
+            BookFileTypes::EpubFileType => "epub",
+            _ => "unknown",
+        }
+    }
 }

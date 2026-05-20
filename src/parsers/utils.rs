@@ -5,8 +5,8 @@ use std::sync::{Mutex, OnceLock};
 use uuid::Uuid;
 
 use crate::common::constants::{BOOKMAP_FILE_PATH, EPUB_DIR_PATH};
-use crate::common::models::book::BookMap;
 use crate::common::models::filetypes::BookFileTypes;
+use crate::common::models::settings::BookMap;
 
 pub(crate) fn get_book_folder_path(
     file_type: BookFileTypes,
@@ -15,7 +15,8 @@ pub(crate) fn get_book_folder_path(
     match file_name.split(".").next() {
         Some(file_name_without_extension) => match file_type {
             BookFileTypes::EpubFileType => Ok(EPUB_DIR_PATH.join(Path::new(
-                &get_book_uuid(file_name_without_extension)?.to_string(),
+                &get_book_uuid(file_name_without_extension, EPUB_DIR_PATH.to_path_buf())?
+                    .to_string(),
             ))),
             BookFileTypes::UnknownFileType => Err(std::io::Error::other(
                 "get_book_folder_name: Unknown file types",
@@ -29,7 +30,10 @@ pub(crate) fn get_book_folder_path(
 
 static BOOKMAP_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
-pub(crate) fn get_book_uuid(file_name: &str) -> Result<Uuid, std::io::Error> {
+pub(crate) fn get_book_uuid(
+    file_name: &str,
+    parent_file_path: PathBuf,
+) -> Result<Uuid, std::io::Error> {
     let lock = BOOKMAP_LOCK.get_or_init(|| Mutex::new(()));
     let _guard = lock.lock().unwrap();
 
@@ -47,7 +51,14 @@ pub(crate) fn get_book_uuid(file_name: &str) -> Result<Uuid, std::io::Error> {
         }
 
         let new_book_uuid = Uuid::new_v4();
-        book_map.push(BookMap::new(new_book_uuid, String::from(file_name)));
+
+        let file_path = parent_file_path.join(new_book_uuid.to_string());
+
+        book_map.push(BookMap::new(
+            new_book_uuid,
+            String::from(file_name),
+            file_path.to_str().unwrap(),
+        ));
 
         let tmp = format!("{}.tmp", BOOKMAP_FILE_PATH.to_string_lossy());
         let file = fs::File::create(&tmp)?;

@@ -7,9 +7,11 @@ use crate::common::{
 
 pub(crate) fn scan_sources_for_books()
 -> Result<HashMap<String, BookFileTypes>, Box<dyn std::error::Error>> {
+    let mut all_books: HashMap<String, BookFileTypes> = HashMap::new();
+
+    // scan for books in source settings
     let settings_file_content = fs::read_to_string(SETTINGS_FILE_PATH.to_path_buf())?;
     let settings: Settings = toml::from_str(&settings_file_content)?;
-    let mut all_books: HashMap<String, BookFileTypes> = HashMap::new();
     for source in settings.get_get_source_paths().iter() {
         for entry in fs::read_dir(source)? {
             let entry = entry?;
