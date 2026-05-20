@@ -15,8 +15,12 @@ pub(crate) fn get_book_folder_path(
     match file_name.split(".").next() {
         Some(file_name_without_extension) => match file_type {
             BookFileTypes::EpubFileType => Ok(EPUB_DIR_PATH.join(Path::new(
-                &get_book_uuid(file_name_without_extension, EPUB_DIR_PATH.to_path_buf())?
-                    .to_string(),
+                &get_book_uuid(
+                    "epub",
+                    file_name_without_extension,
+                    EPUB_DIR_PATH.to_path_buf(),
+                )?
+                .to_string(),
             ))),
             BookFileTypes::UnknownFileType => Err(std::io::Error::other(
                 "get_book_folder_name: Unknown file types",
@@ -31,6 +35,7 @@ pub(crate) fn get_book_folder_path(
 static BOOKMAP_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 pub(crate) fn get_book_uuid(
+    filetype: &str,
     file_name: &str,
     parent_file_path: PathBuf,
 ) -> Result<Uuid, std::io::Error> {
@@ -56,8 +61,9 @@ pub(crate) fn get_book_uuid(
 
         book_map.push(BookMap::new(
             new_book_uuid,
-            String::from(file_name),
+            file_name,
             file_path.to_str().unwrap(),
+            filetype,
         ));
 
         let tmp = format!("{}.tmp", BOOKMAP_FILE_PATH.to_string_lossy());

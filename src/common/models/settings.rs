@@ -28,8 +28,9 @@ pub(crate) struct BookBookmark {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct BookMap<'a> {
     uuid: Uuid,
-    filename: String,
+    filename: &'a str,
     filepath: &'a str,
+    filetype: &'a str,
 }
 
 impl Settings {
@@ -91,11 +92,12 @@ impl BookBookmark {
 }
 
 impl<'a> BookMap<'a> {
-    pub(crate) fn new(uuid: Uuid, filename: String, filepath: &'a str) -> Self {
+    pub(crate) fn new(uuid: Uuid, filename: &'a str, filepath: &'a str, filetype: &'a str) -> Self {
         Self {
             uuid,
             filename,
             filepath,
+            filetype,
         }
     }
     pub(crate) fn get_uuid(&self) -> Uuid {
