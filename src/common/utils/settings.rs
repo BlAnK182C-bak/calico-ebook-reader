@@ -1,15 +1,33 @@
 use std::{collections::HashMap, fs};
 
 use crate::common::{
-    constants::SETTINGS_FILE_PATH,
-    models::{filetypes::BookFileTypes, settings::Settings},
+    constants::{BOOKMAP_FILE_PATH, SETTINGS_FILE_PATH},
+    models::{
+        filetypes::BookFileTypes,
+        settings::{BookMap, Settings},
+    },
 };
 
 pub(crate) fn scan_sources_for_books()
 -> Result<HashMap<String, BookFileTypes>, Box<dyn std::error::Error>> {
+    let mut all_books: HashMap<String, BookFileTypes> = if BOOKMAP_FILE_PATH.exists() {
+        let file_contents = fs::read_to_string(BOOKMAP_FILE_PATH.to_path_buf())?;
+        if file_contents.trim().is_empty() {
+            HashMap::new()
+        } else {
+            let bookmap: Vec<BookMap> = serde_json::from_str(&file_contents)?;
+            bookmap
+                .into_iter()
+                .map(|map| (String::from(map.get_filepath()), map.get_filetype()))
+                .collect()
+        }
+    } else {
+        HashMap::new()
+    };
+
+    // scan for books in source settings
     let settings_file_content = fs::read_to_string(SETTINGS_FILE_PATH.to_path_buf())?;
     let settings: Settings = toml::from_str(&settings_file_content)?;
-    let mut all_books: HashMap<String, BookFileTypes> = HashMap::new();
     for source in settings.get_get_source_paths().iter() {
         for entry in fs::read_dir(source)? {
             let entry = entry?;
@@ -17,6 +35,14 @@ pub(crate) fn scan_sources_for_books()
 
             if path.is_file() {
                 let stringified_path = path.to_string_lossy().to_string();
+
+                if all_books.contains_key(&stringified_path) {
+                    println!(
+                        "scan_sources_for_books: Skipping already extracted: {}",
+                        stringified_path
+                    );
+                    continue;
+                }
                 let Some(extension) = path
                     .extension()
                     .and_then(|e| e.to_str().filter(|e| !e.is_empty()))
