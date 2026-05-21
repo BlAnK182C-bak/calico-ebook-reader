@@ -11,13 +11,14 @@ use crate::common::{
 pub(crate) fn scan_sources_for_books()
 -> Result<HashMap<String, BookFileTypes>, Box<dyn std::error::Error>> {
     let mut all_books: HashMap<String, BookFileTypes> = if BOOKMAP_FILE_PATH.exists() {
-        let bookmap_content = fs::read_to_string(BOOKMAP_FILE_PATH.to_path_buf())?;
-        if bookmap_content.trim().is_empty() {
+        let file_contents = fs::read_to_string(BOOKMAP_FILE_PATH.to_path_buf())?;
+        if file_contents.trim().is_empty() {
             HashMap::new()
         } else {
-            let res: Vec<BookMap> = serde_json::from_str(&bookmap_content)?;
-            res.into_iter()
-                .map(|item| (String::from(item.get_filepath()), item.get_filetype()))
+            let bookmap: Vec<BookMap> = serde_json::from_str(&file_contents)?;
+            bookmap
+                .into_iter()
+                .map(|map| (String::from(map.get_filepath()), map.get_filetype()))
                 .collect()
         }
     } else {

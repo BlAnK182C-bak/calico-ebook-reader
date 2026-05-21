@@ -28,8 +28,9 @@ pub(crate) struct BookBookmark {
 pub(crate) struct BookMap<'a> {
     uuid: Uuid,
     filename: &'a str,
-    filepath: &'a str,
+    folderpath: &'a str,
     filetype: &'a str,
+    filepath: &'a str,
 }
 
 impl Settings {
@@ -91,12 +92,19 @@ impl BookBookmark {
 }
 
 impl<'a> BookMap<'a> {
-    pub(crate) fn new(uuid: Uuid, filename: &'a str, filepath: &'a str, filetype: &'a str) -> Self {
+    pub(crate) fn new(
+        uuid: Uuid,
+        filename: &'a str,
+        folderpath: &'a str,
+        filetype: &'a str,
+        filepath: &'a str,
+    ) -> Self {
         Self {
             uuid,
             filename,
-            filepath,
+            folderpath,
             filetype,
+            filepath,
         }
     }
     pub(crate) fn get_uuid(&self) -> Uuid {
@@ -107,11 +115,15 @@ impl<'a> BookMap<'a> {
         &self.filename
     }
 
-    pub(crate) fn get_filepath(&self) -> &str {
-        self.filepath
+    pub(crate) fn get_folderpath(&self) -> &str {
+        self.folderpath
     }
 
     pub(crate) fn get_filetype(&self) -> BookFileTypes {
         BookFileTypes::new(self.filetype)
+    }
+
+    pub(crate) fn get_filepath(&self) -> &str {
+        self.filepath
     }
 }

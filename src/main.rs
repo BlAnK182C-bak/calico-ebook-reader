@@ -32,9 +32,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     onboarding::pipeline();
     println!("Onboarding pipeline finished running successfully!");
 
-    let all_book_paths_and_extensions = scan_sources_for_books().unwrap();
+    let new_books_paths_and_extensions = scan_sources_for_books().unwrap();
 
-    let all_books: Vec<Book> = all_book_paths_and_extensions
+    let all_books: Vec<Book> = new_books_paths_and_extensions
         .par_iter()
         .filter_map(|(book_path, book_type)| match book_type {
             BookFileTypes::EpubFileType => {
