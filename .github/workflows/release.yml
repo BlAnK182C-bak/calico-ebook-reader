@@ -37,10 +37,10 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
       - name: Rename binary (Unix)
         if: matrix.os != 'windows-latest'
-        run: cp target/${{ matrix.target }}/release/calico ${{ matrix.artifact-name }}
+        run: cp target/${{ matrix.target }}/release/calico-ebook-reader ${{ matrix.artifact-name }}
       - name: Rename binary (Windows)
         if: matrix.os == 'windows-latest'
-        run: cp target/${{ matrix.target }}/release/calico.exe ${{ matrix.artifact-name }}
+        run: cp target/${{ matrix.target }}/release/calico-ebook-reader.exe ${{ matrix.artifact-name }}
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
