@@ -11,7 +11,7 @@ use super::utils::{
     extract_attr_value_from_attrs, extract_full_path, validate_content_obf, validate_meta_inf,
     validate_mimetype,
 };
-use crate::common::constants::EPUB_ENTRY_POINT;
+use crate::common::constants::{BOOKMAP_FILE_PATH, EPUB_DIR_PATH, EPUB_ENTRY_POINT};
 use crate::common::models::book::Book;
 use crate::common::models::book::{BookMetadata, BookSection};
 use crate::common::models::filetypes::BookFileTypes;
@@ -156,8 +156,12 @@ impl RawEpub {
 
     pub(super) fn extract_epub_file(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let epub_file = fs::File::open(self.get_file_path())?;
-        let curr_book_path =
-            get_book_folder_path(BookFileTypes::EpubFileType, self.get_file_path())?;
+        let curr_book_path = get_book_folder_path(
+            &BookFileTypes::EpubFileType,
+            self.get_file_path(),
+            &BOOKMAP_FILE_PATH.to_path_buf(),
+            &EPUB_DIR_PATH.to_path_buf(),
+        )?;
 
         let file_exists = fs::exists(&curr_book_path)?;
         if file_exists {
