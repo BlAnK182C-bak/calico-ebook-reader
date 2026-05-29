@@ -68,33 +68,13 @@ pub(crate) fn scan_sources_for_books(
 
 #[cfg(test)]
 mod source_scanning_tests {
-    use std::{fs, path::PathBuf};
-    use tempfile::TempDir;
-
     use crate::common::models::filetypes::BookFileTypes;
-
-    fn write_settings(tempdir: &TempDir, source_paths: &[&str]) -> PathBuf {
-        let path = tempdir.path().join("settings.toml");
-        let paths_toml = source_paths
-            .iter()
-            .map(|p| format!("\"{}\"", p))
-            .collect::<Vec<_>>()
-            .join(", ");
-        fs::write(&path, format!("[sources]\nsource_paths = [{}]", paths_toml)).unwrap();
-        path
-    }
-
-    fn write_bookmap(tempdir: &TempDir, bookmap_content: &str) -> PathBuf {
-        let path = tempdir.path().join("bookmap.json");
-        fs::write(&path, bookmap_content).unwrap();
-        path
-    }
+    use crate::common::utils::tests::{write_bookmap, write_settings};
+    use std::fs;
+    use tempfile::TempDir;
 
     #[test]
     fn existing_sources_no_exsting_bookmap() -> Result<(), Box<dyn std::error::Error>> {
-        // Expectation: 3 epubs in a source file - all of them should be returned in a hashmap and
-        // with their respective file types
-
         let tempdir = TempDir::new()?;
         let source_dir = tempdir.path().join("books");
         fs::create_dir(&source_dir)?;
@@ -114,8 +94,6 @@ mod source_scanning_tests {
 
     #[test]
     fn bookmap_file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
-        // Expectation: Error on bookmap file path not existing
-
         let tempdir = TempDir::new()?;
         let settings_path = tempdir.path().join("settings.toml");
         write_settings(&tempdir, &[""]);
@@ -131,8 +109,6 @@ mod source_scanning_tests {
 
     #[test]
     fn settings_file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
-        // Expectation: Error on settings file path not existing
-
         let tempdir = TempDir::new()?;
         let settings_path = tempdir.path().join("settings.toml");
         let bookmap_path = tempdir.path().join("bookmap.json");
@@ -149,7 +125,6 @@ mod source_scanning_tests {
 
     #[test]
     fn empty_source_file_and_bookmap() -> Result<(), Box<dyn std::error::Error>> {
-        // Expectation: resulting hashmap should have no items
         let tempdir = TempDir::new()?;
         let settings_path = tempdir.path().join("settings.toml");
         write_settings(&tempdir, &[]);
@@ -164,57 +139,35 @@ mod source_scanning_tests {
     #[test]
     fn multiple_sources_and_books() -> Result<(), Box<dyn std::error::Error>> {
         let tempdir = TempDir::new()?;
-        let source_dir_1 = tempdir.path().join("book_source_1");
-        fs::create_dir(&source_dir_1)?;
-        let epub_path_1 = source_dir_1.join("new_book_1.epub");
-        let epub_path_2 = source_dir_1.join("new_book_2.epub");
-        let epub_path_3 = source_dir_1.join("new_book_3.epub");
-        fs::write(&epub_path_1, b"")?;
-        fs::write(&epub_path_2, b"")?;
-        fs::write(&epub_path_3, b"")?;
+        let source_dir_names = ["book_source_1", "book_source_2"];
+        let book_names = ["new_book_1.epub", "new_book_2.epub", "new_book_3.epub"];
 
-        let source_dir_2 = tempdir.path().join("book_source_2");
-        fs::create_dir(&source_dir_2)?;
-        let epub_path_4 = source_dir_2.join("new_book_1.epub");
-        let epub_path_5 = source_dir_2.join("new_book_2.epub");
-        let epub_path_6 = source_dir_2.join("new_book_3.epub");
-        fs::write(&epub_path_4, b"")?;
-        fs::write(&epub_path_5, b"")?;
-        fs::write(&epub_path_6, b"")?;
+        let mut all_epub_paths: Vec<String> = Vec::new();
+        let mut source_dir_paths: Vec<String> = Vec::new();
 
-        let settings_path = tempdir.path().join("settings.toml");
-        write_settings(
-            &tempdir,
-            &[
-                source_dir_1.to_str().unwrap(),
-                source_dir_2.to_str().unwrap(),
-            ],
-        );
-        let bookmap_path = tempdir.path().join("bookmap.json");
-        write_bookmap(&tempdir, "");
+        for dir_name in source_dir_names {
+            let source_dir = tempdir.path().join(dir_name);
+            fs::create_dir(&source_dir)?;
+            source_dir_paths.push(source_dir.to_string_lossy().into_owned());
+            for book_name in book_names {
+                let epub_path = source_dir.join(book_name);
+                fs::write(&epub_path, b"")?;
+                all_epub_paths.push(epub_path.to_string_lossy().into_owned());
+            }
+        }
+
+        let source_dir_refs: Vec<&str> = source_dir_paths.iter().map(|s| s.as_str()).collect();
+        let settings_path = write_settings(&tempdir, &source_dir_refs);
+        let bookmap_path = write_bookmap(&tempdir, "");
 
         let res = super::scan_sources_for_books(bookmap_path, settings_path)?;
         assert_eq!(res.len(), 6);
 
-        let key_1 = epub_path_1.to_string_lossy().to_string();
-        let key_2 = epub_path_2.to_string_lossy().to_string();
-        let key_3 = epub_path_3.to_string_lossy().to_string();
-        let key_4 = epub_path_4.to_string_lossy().to_string();
-        let key_5 = epub_path_5.to_string_lossy().to_string();
-        let key_6 = epub_path_6.to_string_lossy().to_string();
+        for key in &all_epub_paths {
+            assert!(res.contains_key(key));
+            assert!(matches!(res[key], BookFileTypes::EpubFileType));
+        }
 
-        assert!(res.contains_key(&key_1));
-        assert!(res.contains_key(&key_2));
-        assert!(res.contains_key(&key_3));
-        assert!(res.contains_key(&key_4));
-        assert!(res.contains_key(&key_5));
-        assert!(res.contains_key(&key_6));
-        assert!(matches!(res[&key_1], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_2], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_3], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_4], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_5], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_6], BookFileTypes::EpubFileType));
         Ok(())
     }
 
@@ -266,26 +219,19 @@ mod source_scanning_tests {
 
         let res = super::scan_sources_for_books(bookmap_path, settings_path)?;
         assert_eq!(res.len(), 5);
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/03_The_Titan_39_s_Curse.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/02_The_Sea_of_Monsters.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/01_The_Lightning_Thief.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/04_The_Battle_of_the_Labyrinth.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/05_The_Last_Olympian.epub"],
-            BookFileTypes::EpubFileType
-        ));
+
+        let expected_filepaths = [
+            "/Users/abhinavkumarsingh/Documents/03_The_Titan_39_s_Curse.epub",
+            "/Users/abhinavkumarsingh/Documents/02_The_Sea_of_Monsters.epub",
+            "/Users/abhinavkumarsingh/Documents/01_The_Lightning_Thief.epub",
+            "/Users/abhinavkumarsingh/Documents/04_The_Battle_of_the_Labyrinth.epub",
+            "/Users/abhinavkumarsingh/Documents/05_The_Last_Olympian.epub",
+        ];
+
+        for filepath in expected_filepaths {
+            assert!(matches!(res[filepath], BookFileTypes::EpubFileType));
+        }
+
         Ok(())
     }
 
@@ -335,76 +281,45 @@ mod source_scanning_tests {
 ]"#,
         );
 
-        let source_dir_1 = tempdir.path().join("book_source_1");
-        fs::create_dir(&source_dir_1)?;
-        let epub_path_1 = source_dir_1.join("new_book_1.epub");
-        let epub_path_2 = source_dir_1.join("new_book_2.epub");
-        let epub_path_3 = source_dir_1.join("new_book_3.epub");
-        fs::write(&epub_path_1, b"")?;
-        fs::write(&epub_path_2, b"")?;
-        fs::write(&epub_path_3, b"")?;
+        let source_dir_names = ["book_source_1", "book_source_2"];
+        let book_names = ["new_book_1.epub", "new_book_2.epub", "new_book_3.epub"];
 
-        let source_dir_2 = tempdir.path().join("book_source_2");
-        fs::create_dir(&source_dir_2)?;
-        let epub_path_4 = source_dir_2.join("new_book_1.epub");
-        let epub_path_5 = source_dir_2.join("new_book_2.epub");
-        let epub_path_6 = source_dir_2.join("new_book_3.epub");
-        fs::write(&epub_path_4, b"")?;
-        fs::write(&epub_path_5, b"")?;
-        fs::write(&epub_path_6, b"")?;
+        let mut all_epub_paths: Vec<String> = Vec::new();
+        let mut source_dir_paths: Vec<String> = Vec::new();
 
-        let settings_path = tempdir.path().join("settings.toml");
-        write_settings(
-            &tempdir,
-            &[
-                source_dir_1.to_str().unwrap(),
-                source_dir_2.to_str().unwrap(),
-            ],
-        );
+        for dir_name in source_dir_names {
+            let source_dir = tempdir.path().join(dir_name);
+            fs::create_dir(&source_dir)?;
+            source_dir_paths.push(source_dir.to_string_lossy().into_owned());
+            for book_name in book_names {
+                let epub_path = source_dir.join(book_name);
+                fs::write(&epub_path, b"")?;
+                all_epub_paths.push(epub_path.to_string_lossy().into_owned());
+            }
+        }
+
+        let source_dir_refs: Vec<&str> = source_dir_paths.iter().map(|s| s.as_str()).collect();
+        let settings_path = write_settings(&tempdir, &source_dir_refs);
 
         let res = super::scan_sources_for_books(bookmap_path, settings_path)?;
-
-        let key_1 = epub_path_1.to_string_lossy().to_string();
-        let key_2 = epub_path_2.to_string_lossy().to_string();
-        let key_3 = epub_path_3.to_string_lossy().to_string();
-        let key_4 = epub_path_4.to_string_lossy().to_string();
-        let key_5 = epub_path_5.to_string_lossy().to_string();
-        let key_6 = epub_path_6.to_string_lossy().to_string();
-
         assert_eq!(res.len(), 11);
-        assert!(res.contains_key(&key_1));
-        assert!(res.contains_key(&key_2));
-        assert!(res.contains_key(&key_3));
-        assert!(res.contains_key(&key_4));
-        assert!(res.contains_key(&key_5));
-        assert!(res.contains_key(&key_6));
-        assert!(matches!(res[&key_1], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_2], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_3], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_4], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_5], BookFileTypes::EpubFileType));
-        assert!(matches!(res[&key_6], BookFileTypes::EpubFileType));
 
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/03_The_Titan_39_s_Curse.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/02_The_Sea_of_Monsters.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/01_The_Lightning_Thief.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/04_The_Battle_of_the_Labyrinth.epub"],
-            BookFileTypes::EpubFileType
-        ));
-        assert!(matches!(
-            res["/Users/abhinavkumarsingh/Documents/05_The_Last_Olympian.epub"],
-            BookFileTypes::EpubFileType
-        ));
+        for key in &all_epub_paths {
+            assert!(res.contains_key(key));
+            assert!(matches!(res[key], BookFileTypes::EpubFileType));
+        }
+
+        let bookmap_filepaths = [
+            "/Users/abhinavkumarsingh/Documents/03_The_Titan_39_s_Curse.epub",
+            "/Users/abhinavkumarsingh/Documents/02_The_Sea_of_Monsters.epub",
+            "/Users/abhinavkumarsingh/Documents/01_The_Lightning_Thief.epub",
+            "/Users/abhinavkumarsingh/Documents/04_The_Battle_of_the_Labyrinth.epub",
+            "/Users/abhinavkumarsingh/Documents/05_The_Last_Olympian.epub",
+        ];
+
+        for filepath in bookmap_filepaths {
+            assert!(matches!(res[filepath], BookFileTypes::EpubFileType));
+        }
 
         Ok(())
     }

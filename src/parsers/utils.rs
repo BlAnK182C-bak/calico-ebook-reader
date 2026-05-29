@@ -134,20 +134,14 @@ mod get_file_name_from_path_tests {
 
 #[cfg(test)]
 mod get_book_uuid_tests {
+    use crate::common::utils::tests::write_bookmap;
     use std::fs;
-    use std::path::PathBuf;
     use std::sync::Arc;
     use std::thread;
     use tempfile::TempDir;
     use uuid::Uuid;
 
     use crate::common::models::settings::BookMap;
-
-    fn write_bookmap(tempdir: &TempDir, bookmap_content: &str) -> PathBuf {
-        let path = tempdir.path().join("bookmap.json");
-        fs::write(&path, bookmap_content).unwrap();
-        path
-    }
 
     #[test]
     fn a_new_book() -> Result<(), std::io::Error> {
@@ -239,21 +233,8 @@ mod get_book_uuid_tests {
 #[cfg(test)]
 mod get_book_folder_path_tests {
     use crate::common::models::filetypes::BookFileTypes;
-    use std::fs;
-    use std::path::PathBuf;
+    use crate::common::utils::tests::{make_ebooks_dir, write_bookmap};
     use tempfile::TempDir;
-
-    fn write_bookmap(tempdir: &TempDir, bookmap_content: &str) -> PathBuf {
-        let path = tempdir.path().join("bookmap.json");
-        fs::write(&path, bookmap_content).unwrap();
-        path
-    }
-
-    fn make_ebooks_dir(tempdir: &TempDir) -> PathBuf {
-        let path = tempdir.path().join("epubs/");
-        fs::create_dir(&path).unwrap();
-        path
-    }
 
     #[test]
     fn other_book_type_than_known() -> Result<(), std::io::Error> {
