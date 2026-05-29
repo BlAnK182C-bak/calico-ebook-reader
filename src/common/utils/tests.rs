@@ -1,4 +1,5 @@
 use crate::common::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
+use crate::pagination::models::Page;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
@@ -76,4 +77,7 @@ pub(crate) fn create_test_epub_zip_file(
     zip.finish()?;
 
     Ok(())
+}
+pub(crate) fn create_page(start_offset: usize) -> Page {
+    Page::new(vec![], start_offset, start_offset + 100)
 }
