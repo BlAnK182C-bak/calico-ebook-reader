@@ -1,5 +1,6 @@
 use super::filetypes::BookFileTypes;
 
+#[derive(Debug)]
 pub(crate) struct BookMetadata {
     title: String,
     author: Option<String>,
@@ -12,6 +13,7 @@ pub(crate) struct BookMetadata {
     rights: Option<String>,
 }
 
+#[derive(Debug)]
 pub(crate) struct BookSection {
     id: String,
     name: Option<String>,

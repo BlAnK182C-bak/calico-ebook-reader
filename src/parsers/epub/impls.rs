@@ -291,6 +291,11 @@ impl RawEpub {
                     Ok(XmlEvent::EndDocument) => {
                         break;
                     }
+
+                    Err(err) => {
+                        return Err(std::io::Error::other(err.to_string()));
+                    }
+
                     _ => {}
                 }
             }
@@ -448,5 +453,361 @@ impl RawEpub {
                 "extract_epub_content: This epub is not validated.",
             ));
         }
+    }
+}
+
+#[cfg(test)]
+mod epub_validation_tests {
+    use super::*;
+    use crate::common::utils::tests::create_valid_epub_structure;
+
+    #[test]
+    fn validates_valid_epub_structure() -> Result<(), std::io::Error> {
+        let dir = create_valid_epub_structure()?;
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_extracted_directory_path(dir.path().to_string_lossy().as_ref());
+        epub.validate()?;
+        assert!(epub.get_is_validated());
+
+        Ok(())
+    }
+
+    #[test]
+    fn invalidates_when_mimetype_is_wrong() -> Result<(), std::io::Error> {
+        let dir = create_valid_epub_structure()?;
+        std::fs::write(dir.path().join("mimetype"), "bad-mimetype").unwrap();
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_extracted_directory_path(dir.path().to_string_lossy().as_ref());
+        epub.validate()?;
+        assert!(!epub.get_is_validated());
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod init_tests {
+    // AI generated tests
+
+    use super::*;
+    use crate::common::utils::tests::create_valid_epub_structure;
+
+    #[test]
+    fn init_sets_entry_and_rootfile_paths() -> Result<(), std::io::Error> {
+        let dir = create_valid_epub_structure()?;
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_extracted_directory_path(dir.path().to_string_lossy().as_ref());
+        epub.set_is_validated(true);
+        epub.init()?;
+        let rootfile_path = epub.get_rootfile_path()?;
+
+        assert!(rootfile_path.ends_with("OPS/content.opf"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn init_fails_when_epub_not_validated() {
+        let mut epub = RawEpub::new("dummy.epub");
+        let result = epub.init();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "init: The following epub is not validated yet."
+        );
+    }
+
+    #[test]
+    fn init_fails_when_extracted_directory_is_missing() {
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_is_validated(true);
+        let result = epub.init();
+
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::NotFound);
+    }
+
+    #[test]
+    fn init_sets_correct_entry_file_path() -> Result<(), std::io::Error> {
+        let dir = create_valid_epub_structure()?;
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_extracted_directory_path(dir.path().to_string_lossy().as_ref());
+        epub.set_is_validated(true);
+        epub.init()?;
+
+        assert!(
+            epub.entry_file_path
+                .as_ref()
+                .unwrap()
+                .ends_with("META-INF/container.xml")
+        );
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod extract_epub_file_tests {
+    // AI generated tests
+
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use tempfile::tempdir;
+
+    use super::*;
+    use crate::common::utils::tests::create_test_epub_zip_file;
+
+    #[test]
+    fn extracts_valid_epub_successfully() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+        let epub_path = dir.path().join("test.epub");
+        create_test_epub_zip_file(&epub_path)?;
+        let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
+        epub.extract_epub_file()?;
+        let extracted_path = epub.get_extracted_directory_path().unwrap();
+
+        assert!(std::path::Path::new(extracted_path).exists());
+        assert!(
+            std::path::Path::new(extracted_path)
+                .join("mimetype")
+                .exists()
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn sets_extracted_directory_path_correctly() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+        let epub_path = dir.path().join("test.epub");
+        create_test_epub_zip_file(&epub_path)?;
+        let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
+        epub.extract_epub_file()?;
+
+        assert!(epub.get_extracted_directory_path().is_some());
+
+        Ok(())
+    }
+
+    #[test]
+    fn fails_when_epub_file_does_not_exist() {
+        let mut epub = RawEpub::new("does-not-exist.epub");
+        let result = epub.extract_epub_file();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn fails_for_invalid_zip_file() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+
+        let unique = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
+        let fake_epub = dir.path().join(format!("fake-{unique}.epub"));
+
+        fs::write(&fake_epub, "not a zip")?;
+        let mut epub = RawEpub::new(fake_epub.to_string_lossy().as_ref());
+        let result = epub.extract_epub_file();
+
+        assert!(result.is_err());
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod metadata_extraction_tests {
+    // AI generated tests
+
+    use std::fs;
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[test]
+    fn extracts_epub_metadata_correctly() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+
+        let ops_dir = dir.path().join("OPS");
+        fs::create_dir_all(&ops_dir)?;
+        let content_opf = r#"
+            <package>
+                <metadata>
+                    <title>The Hobbit</title>
+                    <creator>J.R.R. Tolkien</creator>
+                    <description>A fantasy novel</description>
+                    <subject>Fantasy</subject>
+                    <subject>Adventure</subject>
+                    <publisher>Allen &amp; Unwin</publisher>
+                    <identifier scheme="isbn">9780261103344</identifier>
+                    <rights>All rights reserved</rights>
+
+                    <meta name="calibre:series" content="Middle-earth Universe"/>
+                    <meta name="calibre:series_index" content="1"/>
+                </metadata>
+            </package>
+        "#;
+        let rootfile_path = ops_dir.join("content.opf");
+        fs::write(&rootfile_path, content_opf)?;
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_is_validated(true);
+        epub.set_rootfile_path(Some(rootfile_path.to_string_lossy().into_owned()));
+        let metadata = epub.extract_epub_metadata()?;
+        let book = Book::new(metadata, BookFileTypes::new("epub"), vec![]);
+        let metadata_text = book.get_metadata();
+
+        assert!(metadata_text.contains("The Hobbit"));
+        assert!(metadata_text.contains("J.R.R. Tolkien"));
+        assert!(metadata_text.contains("A fantasy novel"));
+        assert!(metadata_text.contains("Middle-earth Universe"));
+        assert!(metadata_text.contains("Fantasy, Adventure"));
+        assert!(metadata_text.contains("Allen & Unwin"));
+        assert!(metadata_text.contains("9780261103344"));
+        assert!(metadata_text.contains("All rights reserved"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn metadata_extraction_fails_when_not_validated() {
+        let epub = RawEpub::new("dummy.epub");
+        let result = epub.extract_epub_metadata();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "extract_epub_metadata: This book is not validated"
+        );
+    }
+}
+
+#[cfg(test)]
+mod spine_manifest_mapping_tests {
+    // AI generated tests
+
+    use std::fs;
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[test]
+    fn maps_spine_items_to_manifest_correctly() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+
+        let ops_dir = dir.path().join("OPS");
+        fs::create_dir_all(&ops_dir)?;
+        let content_opf = r#"
+            <package>
+                <manifest>
+                    <item id="chapter1" href="chapter1.xhtml"/>
+                    <item id="chapter2" href="chapter2.xhtml"/>
+                    <item id="stylesheet" href="styles.css"/>
+                </manifest>
+
+                <spine>
+                    <itemref idref="chapter1"/>
+                    <itemref idref="chapter2"/>
+                </spine>
+            </package>
+        "#;
+        let rootfile_path = ops_dir.join("content.opf");
+        fs::write(&rootfile_path, content_opf)?;
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_rootfile_path(Some(rootfile_path.to_string_lossy().into_owned()));
+        epub.map_spine_to_manifest()?;
+        let manifest = epub.get_spine_to_manifest_map();
+
+        assert_eq!(
+            manifest.get("chapter1"),
+            Some(&"chapter1.xhtml".to_string())
+        );
+        assert_eq!(
+            manifest.get("chapter2"),
+            Some(&"chapter2.xhtml".to_string())
+        );
+        assert_eq!(manifest.len(), 2);
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod content_extraction_tests {
+    // AI generated tests
+
+    use std::fs;
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[test]
+    fn extracts_epub_content_correctly() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+
+        let ops_dir = dir.path().join("OPS");
+        fs::create_dir_all(&ops_dir)?;
+        let content_opf = r#"
+            <package>
+                <manifest>
+                    <item id="chapter1" href="chapter1.xhtml"/>
+                    <item id="chapter2" href="chapter2.xhtml"/>
+                </manifest>
+
+                <spine>
+                    <itemref idref="chapter1"/>
+                    <itemref idref="chapter2"/>
+                </spine>
+            </package>
+        "#;
+        fs::write(ops_dir.join("content.opf"), content_opf)?;
+
+        let chapter1 = r#"
+            <html>
+                <body>
+                    <h1>Chapter 1</h1>
+                    <p>Hello world</p>
+                </body>
+            </html>
+        "#;
+        let chapter2 = r#"
+            <html>
+                <body>
+                    <h1>Chapter 2</h1>
+                    <p>Second chapter text</p>
+                </body>
+            </html>
+        "#;
+        fs::write(ops_dir.join("chapter1.xhtml"), chapter1)?;
+        fs::write(ops_dir.join("chapter2.xhtml"), chapter2)?;
+
+        let mut epub = RawEpub::new("dummy.epub");
+        epub.set_is_validated(true);
+        epub.set_rootfile_path(Some(
+            ops_dir.join("content.opf").to_string_lossy().into_owned(),
+        ));
+        let sections = epub.extract_epub_content()?;
+
+        assert_eq!(sections.len(), 2);
+        assert_eq!(sections[0].get_id(), "chapter1");
+        assert!(sections[0].get_content().contains("Chapter 1"));
+        assert!(sections[0].get_content().contains("Hello world"));
+        assert_eq!(sections[1].get_id(), "chapter2");
+        assert!(sections[1].get_content().contains("Chapter 2"));
+        assert!(sections[1].get_content().contains("Second chapter text"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn content_extraction_fails_when_not_validated() {
+        let mut epub = RawEpub::new("dummy.epub");
+
+        let result = epub.extract_epub_content();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "extract_epub_content: This epub is not validated."
+        );
     }
 }
