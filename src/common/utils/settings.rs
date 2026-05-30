@@ -10,7 +10,7 @@ pub(crate) fn scan_sources_for_books(
     settings_file_path: PathBuf,
 ) -> Result<HashMap<String, BookFileTypes>, Box<dyn std::error::Error>> {
     let mut all_books: HashMap<String, BookFileTypes> = if bookmap_file_path.exists() {
-        let file_contents = fs::read_to_string(bookmap_file_path.to_path_buf())?;
+        let file_contents = fs::read_to_string(bookmap_file_path)?;
         if file_contents.trim().is_empty() {
             HashMap::new()
         } else {
@@ -25,9 +25,9 @@ pub(crate) fn scan_sources_for_books(
     };
 
     // scan for books in source settings
-    let settings_file_content = fs::read_to_string(settings_file_path.to_path_buf())?;
+    let settings_file_content = fs::read_to_string(settings_file_path)?;
     let settings: Settings = toml::from_str(&settings_file_content)?;
-    if settings.get_get_source_paths().len() == 0 {
+    if settings.get_get_source_paths().is_empty() {
         println!(
             "scan_sources_for_books: Warning: no sources, skipping creation of all_books entirely"
         );

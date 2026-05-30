@@ -6,6 +6,11 @@ impl LayoutSection {
         Self { id, lines }
     }
 
+    #[allow(dead_code)]
+    pub(crate) fn get_id(&self) -> &String {
+        &self.id
+    }
+
     pub(crate) fn get_lines(&self) -> &Vec<Line> {
         &self.lines
     }

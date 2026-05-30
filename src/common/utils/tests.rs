@@ -7,14 +7,7 @@ use tempfile::TempDir;
 use zip::ZipWriter;
 use zip::write::SimpleFileOptions;
 
-use crate::{
-    common::models::{
-        book::{Book, BookMetadata, BookSection},
-        filetypes::BookFileTypes,
-        line::Line,
-    },
-    layout::models::LayoutSection,
-};
+use crate::common::models::book::{Book, BookMetadata, BookSection};
 
 pub(crate) fn write_bookmap(tempdir: &TempDir, bookmap_content: &str) -> PathBuf {
     let path = tempdir.path().join("bookmap.json");
@@ -92,7 +85,7 @@ pub(crate) fn create_page(start_offset: usize) -> Page {
 }
 
 pub(crate) fn create_book_section(id: &str, content: &str) -> BookSection {
-    BookSection::new(id.to_string(), None, content.to_string())
+    BookSection::new(id.to_string(), content.to_string())
 }
 
 pub(crate) fn create_book(sections: Vec<BookSection>) -> Book {
@@ -108,5 +101,5 @@ pub(crate) fn create_book(sections: Vec<BookSection>) -> Book {
         None,
     );
 
-    Book::new(metadata, BookFileTypes::EpubFileType, sections)
+    Book::new(metadata, sections)
 }

@@ -8,7 +8,7 @@ pub(crate) struct RatatuiApp<'a> {
     pub(super) backend: Terminal<CrosstermBackend<Stdout>>,
     pub(super) state: AppState,
 
-    pub(super) books: &'a Vec<Book>,
+    pub(super) books: &'a [Book],
     pub(super) curr_book_pages: Option<Vec<Page>>,
     pub(super) curr_book_lookup: Option<HashMap<usize, usize>>,
     pub(super) curr_book_idx: usize,

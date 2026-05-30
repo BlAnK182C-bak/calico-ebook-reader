@@ -1,5 +1,3 @@
-use super::filetypes::BookFileTypes;
-
 #[derive(Debug)]
 pub(crate) struct BookMetadata {
     title: String,
@@ -16,19 +14,17 @@ pub(crate) struct BookMetadata {
 #[derive(Debug)]
 pub(crate) struct BookSection {
     id: String,
-    name: Option<String>,
     content: String,
 }
 
 pub(crate) struct Book {
-    full_metadata: BookMetadata,
-    file_type: BookFileTypes,
     content: Vec<BookSection>,
     book_title: String,
     readable_metadata: String,
     book_id: String,
 }
 
+#[allow(clippy::too_many_arguments)]
 impl BookMetadata {
     pub(crate) fn new(
         title: String,
@@ -42,7 +38,7 @@ impl BookMetadata {
         rights: Option<String>,
     ) -> Self {
         Self {
-            title: String::from(title),
+            title,
             author,
             description,
             series,
@@ -56,8 +52,8 @@ impl BookMetadata {
 }
 
 impl BookSection {
-    pub(crate) fn new(id: String, name: Option<String>, content: String) -> Self {
-        Self { id, name, content }
+    pub(crate) fn new(id: String, content: String) -> Self {
+        Self { id, content }
     }
     pub(crate) fn get_id(&self) -> &str {
         &self.id
@@ -68,11 +64,7 @@ impl BookSection {
 }
 
 impl Book {
-    pub(crate) fn new(
-        metadata: BookMetadata,
-        file_type: BookFileTypes,
-        content: Vec<BookSection>,
-    ) -> Self {
+    pub(crate) fn new(metadata: BookMetadata, content: Vec<BookSection>) -> Self {
         let book_title: String = format!(
             "{} by {}",
             &metadata.title,
@@ -107,8 +99,6 @@ impl Book {
         );
 
         Self {
-            full_metadata: metadata,
-            file_type,
             content,
             book_title,
             readable_metadata,

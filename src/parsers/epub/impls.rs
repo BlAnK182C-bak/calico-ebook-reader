@@ -28,13 +28,8 @@ impl ParserEngine for RawEpub {
         self.init()?;
         let new_epub_metadata = self.extract_epub_metadata()?;
         let new_epub_sections = self.extract_epub_content()?;
-        let new_epub_file_type = "epub";
 
-        let book = Book::new(
-            new_epub_metadata,
-            BookFileTypes::new(new_epub_file_type),
-            new_epub_sections,
-        );
+        let book = Book::new(new_epub_metadata, new_epub_sections);
 
         Ok(book)
     }
@@ -425,7 +420,7 @@ impl RawEpub {
                                 }
 
                                 Ok(XmlEvent::EndElement { .. }) if is_inside_body => {
-                                    section_content.push_str("\n");
+                                    section_content.push('\n');
                                 }
 
                                 Ok(XmlEvent::EndDocument) => {
@@ -434,11 +429,7 @@ impl RawEpub {
                                 _ => {}
                             }
                         }
-                        Ok(BookSection::new(
-                            String::from(spine_id),
-                            None,
-                            section_content,
-                        ))
+                        Ok(BookSection::new(String::from(spine_id), section_content))
                     },
                 )
                 .collect();
@@ -449,9 +440,9 @@ impl RawEpub {
 
             Ok(all_book_sections)
         } else {
-            return Err(std::io::Error::other(
+            Err(std::io::Error::other(
                 "extract_epub_content: This epub is not validated.",
-            ));
+            ))
         }
     }
 }
@@ -653,7 +644,7 @@ mod metadata_extraction_tests {
         epub.set_is_validated(true);
         epub.set_rootfile_path(Some(rootfile_path.to_string_lossy().into_owned()));
         let metadata = epub.extract_epub_metadata()?;
-        let book = Book::new(metadata, BookFileTypes::new("epub"), vec![]);
+        let book = Book::new(metadata, vec![]);
         let metadata_text = book.get_metadata();
 
         assert!(metadata_text.contains("The Hobbit"));

@@ -30,7 +30,7 @@ pub(crate) trait RenderApp {
 pub(crate) trait RenderingEngine<'a> {
     type OutputRenderer: RenderApp;
     type Error;
-    fn render<L, P>(&mut self, books: &'a Vec<Book>) -> Result<Self::OutputRenderer, Self::Error>
+    fn render<L, P>(&mut self, books: &'a [Book]) -> Result<Self::OutputRenderer, Self::Error>
     where
         L: LayoutEngine,
         P: PaginationEngine<L, OutputPages = Vec<Page>>;

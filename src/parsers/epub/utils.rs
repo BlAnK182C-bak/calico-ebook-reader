@@ -7,7 +7,7 @@ use xml::{EventReader, attribute};
 use crate::common::constants::{EPUB_ENTRY_POINT, EPUB_MIMETYPE};
 
 pub(super) fn extract_attr_value_from_attrs(
-    attributes: &Vec<attribute::OwnedAttribute>,
+    attributes: &[attribute::OwnedAttribute],
     attr_name: &str,
 ) -> Result<String, std::io::Error> {
     attributes
@@ -279,8 +279,8 @@ mod validate_mimetype_tests {
         let file_path = tempdir.path().join("mimetype");
         fs::write(&file_path, "someotherfiletype")?;
 
-        let res = super::validate_mimetype(&tempdir.path().to_string_lossy().to_string())?;
-        assert_eq!(res, false);
+        let res = super::validate_mimetype(tempdir.path().to_string_lossy().to_string().as_ref())?;
+        assert!(!res);
 
         Ok(())
     }
@@ -291,8 +291,8 @@ mod validate_mimetype_tests {
         let file_path = tempdir.path().join("mimetype");
         fs::write(&file_path, EPUB_MIMETYPE)?;
 
-        let res = super::validate_mimetype(&tempdir.path().to_string_lossy().to_string())?;
-        assert_eq!(res, true);
+        let res = super::validate_mimetype(tempdir.path().to_string_lossy().to_string().as_ref())?;
+        assert!(res);
 
         Ok(())
     }

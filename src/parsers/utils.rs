@@ -10,8 +10,8 @@ use crate::common::models::settings::BookMap;
 pub(crate) fn get_book_folder_path(
     file_type: &BookFileTypes,
     filepath: &str,
-    bookmap_file_path: &PathBuf,
-    epub_dir_path: &PathBuf,
+    bookmap_file_path: &Path,
+    epub_dir_path: &Path,
 ) -> Result<PathBuf, std::io::Error> {
     let file_name_without_extension =
         get_file_name_from_path(filepath)?
@@ -31,9 +31,9 @@ pub(crate) fn get_book_folder_path(
                 &get_book_uuid(
                     "epub",
                     file_name_without_extension,
-                    &epub_dir_path,
+                    epub_dir_path,
                     filepath,
-                    &bookmap_file_path,
+                    bookmap_file_path,
                 )?
                 .to_string(),
             ))),
@@ -49,16 +49,16 @@ static BOOKMAP_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 pub(crate) fn get_book_uuid(
     filetype: &str,
     file_name: &str,
-    parent_file_path: &PathBuf,
+    parent_file_path: &Path,
     filepath: &str,
-    bookmap_file_path: &PathBuf,
+    bookmap_file_path: &Path,
 ) -> Result<Uuid, std::io::Error> {
     let lock = BOOKMAP_LOCK.get_or_init(|| Mutex::new(()));
     let _guard = lock.lock().unwrap();
 
-    let bookmap_exists = fs::exists(&bookmap_file_path)?;
+    let bookmap_exists = fs::exists(bookmap_file_path)?;
     if bookmap_exists {
-        let file_contents = fs::read_to_string(&bookmap_file_path)?;
+        let file_contents = fs::read_to_string(bookmap_file_path)?;
         let mut book_map: Vec<BookMap> = serde_json::from_str(&file_contents).unwrap_or(vec![]);
 
         // TODO: lookup can change from O(n) to O(1) if we use hashmaps - whether we do that or not,
@@ -84,8 +84,8 @@ pub(crate) fn get_book_uuid(
         let tmp = format!("{}.tmp", bookmap_file_path.to_string_lossy());
         let file = fs::File::create(&tmp)?;
         let writer = BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &book_map).map_err(|e| std::io::Error::other(e))?;
-        fs::rename(&tmp, bookmap_file_path.as_path())?;
+        serde_json::to_writer_pretty(writer, &book_map).map_err(std::io::Error::other)?;
+        fs::rename(&tmp, bookmap_file_path)?;
 
         Ok(new_book_uuid)
     } else {
@@ -155,7 +155,7 @@ mod get_book_uuid_tests {
             "epub",
             filename,
             &parent_path,
-            &filepath.to_string_lossy().to_string(),
+            filepath.to_string_lossy().to_string().as_ref(),
             &bookmap_path,
         )?;
 
@@ -191,6 +191,7 @@ mod get_book_uuid_tests {
 
         let expected = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
         assert_eq!(res, expected);
+
         Ok(())
     }
 
