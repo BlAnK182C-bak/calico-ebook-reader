@@ -547,6 +547,7 @@ mod extract_epub_file_tests {
     use tempfile::tempdir;
 
     use super::*;
+    use crate::common::constants::BOOKMAP_FILE_PATH;
     use crate::common::utils::tests::create_test_epub_zip_file;
 
     #[test]
@@ -554,6 +555,10 @@ mod extract_epub_file_tests {
         let dir = tempdir()?;
         let epub_path = dir.path().join("test.epub");
         create_test_epub_zip_file(&epub_path)?;
+
+        fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
+        fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
+
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
         epub.extract_epub_file()?;
         let extracted_path = epub.get_extracted_directory_path().unwrap();
@@ -573,6 +578,10 @@ mod extract_epub_file_tests {
         let dir = tempdir()?;
         let epub_path = dir.path().join("test.epub");
         create_test_epub_zip_file(&epub_path)?;
+
+        fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
+        fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
+
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
         epub.extract_epub_file()?;
 
