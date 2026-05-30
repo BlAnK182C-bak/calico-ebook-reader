@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .par_iter()
         .filter_map(|(book_path, book_type)| match book_type {
             BookFileTypes::EpubFileType => {
-                let mut epub = RawEpub::new(&book_path);
+                let mut epub = RawEpub::new(book_path);
                 epub.parse().ok()
             }
             _ => None,

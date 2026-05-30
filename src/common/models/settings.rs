@@ -56,7 +56,7 @@ impl Bookmarks {
         if contents.is_empty() {
             Ok(Bookmarks::default())
         } else {
-            toml::from_str(&contents).map_err(|e| std::io::Error::other(e))
+            toml::from_str(&contents).map_err(std::io::Error::other)
         }
     }
 
@@ -80,7 +80,7 @@ impl Bookmarks {
             },
         );
 
-        let contents = toml::to_string(self).map_err(|e| std::io::Error::other(e))?;
+        let contents = toml::to_string(self).map_err(std::io::Error::other)?;
         std::fs::write(BOOKMARKS_FILE_PATH.to_path_buf(), contents)
     }
 }
@@ -112,9 +112,10 @@ impl<'a> BookMap<'a> {
     }
 
     pub(crate) fn get_filename(&self) -> &str {
-        &self.filename
+        self.filename
     }
 
+    #[allow(dead_code)]
     pub(crate) fn get_folderpath(&self) -> &str {
         self.folderpath
     }

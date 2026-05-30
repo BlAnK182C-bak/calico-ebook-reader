@@ -6,6 +6,7 @@ pub(crate) trait PaginationEngine<L: LayoutEngine> {
     fn create_pages(layout: &L::OutputLayout, page_size: usize) -> Self::OutputPages;
 }
 
+#[allow(dead_code)]
 pub(crate) struct Page {
     pub(super) content: Vec<Line>,
     pub(super) start_byte_offset: usize,

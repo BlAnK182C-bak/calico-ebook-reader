@@ -121,7 +121,7 @@ impl<'a> RenderingEngine<'a> for RatatuiEngine {
     type OutputRenderer = RatatuiApp<'a>;
     type Error = std::io::Error;
 
-    fn render<L, P>(&mut self, books: &'a Vec<Book>) -> Result<Self::OutputRenderer, Self::Error>
+    fn render<L, P>(&mut self, books: &'a [Book]) -> Result<Self::OutputRenderer, Self::Error>
     where
         L: LayoutEngine,
         P: PaginationEngine<L, OutputPages = Vec<Page>>,

@@ -21,15 +21,12 @@ fn create_source_setting() -> Result<(), std::io::Error> {
     let default_settings = &Settings::new(ss);
 
     let existing_content = fs::read_to_string(SETTINGS_FILE_PATH.to_path_buf())?;
-    if !existing_content.trim().is_empty() {
-        if let Ok(settings) = toml::from_str::<Settings>(&existing_content) {
-            if !settings.get_get_source_paths().is_empty() {
-                println!(
-                    "create_source_setting: Sources already exist, skipping addition of defaults"
-                );
-                return Ok(());
-            }
-        }
+    if !existing_content.trim().is_empty()
+        && let Ok(settings) = toml::from_str::<Settings>(&existing_content)
+        && !settings.get_get_source_paths().is_empty()
+    {
+        println!("create_source_setting: Sources already exist, skipping addition of defaults");
+        return Ok(());
     }
 
     let contents = toml::to_string_pretty(default_settings).expect("Failed to serialize config");

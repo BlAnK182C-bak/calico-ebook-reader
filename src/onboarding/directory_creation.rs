@@ -10,8 +10,7 @@ fn create_dir(dir_path: &str, dir_name: &str) -> Result<(), std::io::Error> {
         println!("create_dir: {} directory already exists.", dir_name);
         Ok(())
     } else {
-        fs::create_dir(dir_path)
-            .expect(format!("Failed to create {} directory.", dir_name).as_str());
+        fs::create_dir(dir_path)?;
         println!("Created {} directory successfully.", dir_name);
         Ok(())
     }
