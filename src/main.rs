@@ -9,6 +9,7 @@ use rayon::prelude::*;
 
 use crate::{
     common::{
+        constants::{BOOKMAP_FILE_PATH, SETTINGS_FILE_PATH},
         models::{book::Book, filetypes::BookFileTypes},
         utils::settings::scan_sources_for_books,
     },
@@ -32,7 +33,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     onboarding::pipeline();
     println!("Onboarding pipeline finished running successfully!");
 
-    let new_books_paths_and_extensions = scan_sources_for_books().unwrap();
+    let new_books_paths_and_extensions = scan_sources_for_books(
+        BOOKMAP_FILE_PATH.to_path_buf(),
+        SETTINGS_FILE_PATH.to_path_buf(),
+    )
+    .unwrap();
 
     let all_books: Vec<Book> = new_books_paths_and_extensions
         .par_iter()
