@@ -23,10 +23,6 @@ use crate::{
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: When we separated impls and models, we made everything pub(super) - need to evaluate is
-    // there a necessity even for getters and setters at this point - I am trying to inject a OOPS
-    // concept into a functional language :"))
-
     println!("Hello from Calico!");
 
     println!("Starting onboarding pipeline...");
