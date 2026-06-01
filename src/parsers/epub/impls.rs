@@ -559,6 +559,8 @@ mod extract_epub_file_tests {
         fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
         fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
 
+        fs::create_dir_all(&*EPUB_DIR_PATH)?;
+
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
         epub.extract_epub_file()?;
         let extracted_path = epub.get_extracted_directory_path().unwrap();
@@ -581,6 +583,8 @@ mod extract_epub_file_tests {
 
         fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
         fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
+
+        fs::create_dir_all(&*EPUB_DIR_PATH)?;
 
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
         epub.extract_epub_file()?;
