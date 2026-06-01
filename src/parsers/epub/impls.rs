@@ -23,7 +23,7 @@ use crate::parsers::utils::get_book_folder_path;
 
 impl ParserEngine for RawEpub {
     fn parse(&mut self) -> Result<Book, Box<dyn std::error::Error>> {
-        self.extract_epub_file()?;
+        self.extract_epub_file(&BOOKMAP_FILE_PATH, &EPUB_DIR_PATH)?;
         self.validate()?;
         self.init()?;
         let new_epub_metadata = self.extract_epub_metadata()?;
@@ -149,26 +149,35 @@ impl RawEpub {
         }
     }
 
-    pub(super) fn extract_epub_file(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub(super) fn extract_epub_file(
+        &mut self,
+        bookmap_file_path: &Path,
+        epub_dir_path: &Path,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let epub_file = fs::File::open(self.get_file_path())?;
+
         let curr_book_path = get_book_folder_path(
             &BookFileTypes::EpubFileType,
             self.get_file_path(),
-            &BOOKMAP_FILE_PATH.to_path_buf(),
-            &EPUB_DIR_PATH.to_path_buf(),
+            bookmap_file_path,
+            epub_dir_path,
         )?;
 
         let file_exists = fs::exists(&curr_book_path)?;
+
         if file_exists {
             println!(
                 "warning: extract_epub_file: This book already exists. Not extracting another folder."
             );
         } else {
             fs::create_dir(&curr_book_path)?;
+
             let mut archive = ZipArchive::new(epub_file)?;
             archive.extract(&curr_book_path)?;
         }
+
         self.set_extracted_directory_path(curr_book_path.to_string_lossy().as_ref());
+
         Ok(())
     }
 
@@ -543,34 +552,32 @@ mod extract_epub_file_tests {
     // AI generated tests
 
     use std::fs;
-    use std::time::{SystemTime, UNIX_EPOCH};
     use tempfile::tempdir;
 
     use super::*;
-    use crate::common::constants::BOOKMAP_FILE_PATH;
     use crate::common::utils::tests::create_test_epub_zip_file;
 
     #[test]
     fn extracts_valid_epub_successfully() -> Result<(), Box<dyn std::error::Error>> {
         let dir = tempdir()?;
+
         let epub_path = dir.path().join("test.epub");
         create_test_epub_zip_file(&epub_path)?;
 
-        fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
-        fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
+        let bookmap_path = dir.path().join("bookmap.json");
+        let epub_dir_path = dir.path().join("epubs");
 
-        fs::create_dir_all(&*EPUB_DIR_PATH)?;
+        fs::write(&bookmap_path, "{}")?;
+        fs::create_dir_all(&epub_dir_path)?;
 
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
-        epub.extract_epub_file()?;
+
+        epub.extract_epub_file(&bookmap_path, &epub_dir_path)?;
+
         let extracted_path = epub.get_extracted_directory_path().unwrap();
 
-        assert!(std::path::Path::new(extracted_path).exists());
-        assert!(
-            std::path::Path::new(extracted_path)
-                .join("mimetype")
-                .exists()
-        );
+        assert!(Path::new(extracted_path).exists());
+        assert!(Path::new(extracted_path).join("mimetype").exists());
 
         Ok(())
     }
@@ -578,16 +585,19 @@ mod extract_epub_file_tests {
     #[test]
     fn sets_extracted_directory_path_correctly() -> Result<(), Box<dyn std::error::Error>> {
         let dir = tempdir()?;
+
         let epub_path = dir.path().join("test.epub");
         create_test_epub_zip_file(&epub_path)?;
 
-        fs::create_dir_all(BOOKMAP_FILE_PATH.parent().unwrap())?;
-        fs::write(&*BOOKMAP_FILE_PATH, "{}")?;
+        let bookmap_path = dir.path().join("bookmap.json");
+        let epub_dir_path = dir.path().join("epubs");
 
-        fs::create_dir_all(&*EPUB_DIR_PATH)?;
+        fs::write(&bookmap_path, "{}")?;
+        fs::create_dir_all(&epub_dir_path)?;
 
         let mut epub = RawEpub::new(epub_path.to_string_lossy().as_ref());
-        epub.extract_epub_file()?;
+
+        epub.extract_epub_file(&bookmap_path, &epub_dir_path)?;
 
         assert!(epub.get_extracted_directory_path().is_some());
 
@@ -595,23 +605,40 @@ mod extract_epub_file_tests {
     }
 
     #[test]
-    fn fails_when_epub_file_does_not_exist() {
+    fn fails_when_epub_file_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempdir()?;
+
+        let bookmap_path = dir.path().join("bookmap.json");
+        let epub_dir_path = dir.path().join("epubs");
+
+        fs::write(&bookmap_path, "{}")?;
+        fs::create_dir_all(&epub_dir_path)?;
+
         let mut epub = RawEpub::new("does-not-exist.epub");
-        let result = epub.extract_epub_file();
+
+        let result = epub.extract_epub_file(&bookmap_path, &epub_dir_path);
 
         assert!(result.is_err());
+
+        Ok(())
     }
 
     #[test]
     fn fails_for_invalid_zip_file() -> Result<(), Box<dyn std::error::Error>> {
         let dir = tempdir()?;
 
-        let unique = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
-        let fake_epub = dir.path().join(format!("fake-{unique}.epub"));
-
+        let fake_epub = dir.path().join("fake.epub");
         fs::write(&fake_epub, "not a zip")?;
+
+        let bookmap_path = dir.path().join("bookmap.json");
+        let epub_dir_path = dir.path().join("epubs");
+
+        fs::write(&bookmap_path, "{}")?;
+        fs::create_dir_all(&epub_dir_path)?;
+
         let mut epub = RawEpub::new(fake_epub.to_string_lossy().as_ref());
-        let result = epub.extract_epub_file();
+
+        let result = epub.extract_epub_file(&bookmap_path, &epub_dir_path);
 
         assert!(result.is_err());
 
