@@ -2,6 +2,7 @@
 name = "calico-ebook-reader"
 version = "0.0.1"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 zip = "8.4.0"
