@@ -196,7 +196,7 @@ mod get_book_uuid_tests {
     }
 
     #[test]
-    fn concurrency_testing_with_fifty_books() -> Result<(), std::io::Error> {
+    fn parallelism_testing_with_fifty_books() -> Result<(), std::io::Error> {
         let tempdir = TempDir::new()?;
         let bookmap_path = Arc::new(write_bookmap(&tempdir, "[]"));
         let parent_path = Arc::new(tempdir.path().to_path_buf());

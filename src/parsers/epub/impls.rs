@@ -392,12 +392,8 @@ impl RawEpub {
                 .parent()
                 .map(|p| p.to_path_buf()).ok_or_else(|| std::io::Error::other("extract_epub_content: rootfile_path could not be mapped to PathBuf correctly"))?;
 
-            // you paid for the whole CPU, and you bet your sweet bippy this might use all of it
-            // TODO: How the fuck does one achieve concurrency without risk of excess CPU thread
-            // usage :")) - I guess you don't huh
-            // Still I don't like that we are using n * k amount of threads possible at a time where
-            // n is number of books and k the number of chapters
-
+            // TODO: Parallel processing is good here but how do we prevent excessive CPU usage from
+            // ocurring
             let results: Vec<Result<BookSection, std::io::Error>> = manifest
                 .par_iter()
                 .map(
