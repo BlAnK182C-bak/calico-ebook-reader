@@ -26,12 +26,12 @@ Handles logic for books already known to the system.
 |---|---|
 | `an_old_book` | Ensures existing books are detected and processed correctly. |
 
-#### Function: `concurrency_testing_with_fifty_books`
-Validates concurrent processing behavior for large batches of books (multithreading).
+#### Function: `parallelism_testing_with_fifty_books`
+Validates parallel processing behavior for large batches of books (multithreading).
 
 | Test Case | Description |
 |---|---|
-| `concurrency_testing_with_fifty_books` | Ensures concurrent execution remains stable with fifty books processed simultaneously. |
+| `parallelism_testing_with_fifty_books` | Ensures parallel execution remains stable with fifty books processed simultaneously. |
 
 #### Function: `other_book_type_than_known`
 Handles unsupported or unknown book file types.
