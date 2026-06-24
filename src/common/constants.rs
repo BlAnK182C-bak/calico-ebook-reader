@@ -14,8 +14,8 @@ pub(crate) const BOOKMARKS_FILENAME: &str = "bookmarks.toml";
 pub(crate) const BOOK_MAP_FILENAME: &str = "bookmap.json";
 
 // reader constants
-pub(crate) const LIBRARY_LIST_SECTION_NAME: &str = " Library ";
-pub(crate) const LIBRARY_METADATA_SECTION_NAME: &str = " Metadata ";
+pub(crate) const LIBRARY_LIST_SECTION_NAME: &str = "Library";
+pub(crate) const LIBRARY_METADATA_SECTION_NAME: &str = "Metadata";
 
 // book related constants
 pub(crate) const BOOKS_DIR_NAME: &str = "CER_Books";
@@ -26,6 +26,8 @@ pub(crate) const EPUB_ENTRY_POINT: &str = "META-INF/container.xml";
 
 // TUI constants
 pub(crate) const TUI_PADDING: usize = 1;
+pub(crate) const TUI_HELP_DOC: &str = "<keybind> - <action>\n\nh - flip to previous page\nl - flip to next page\nj - Go down (on me :lipbite_emoji:)\nk - Go up\nEnter - Select a book\n";
+pub(crate) const TUI_PREFIX: &str = "Pres '?' for help";
 
 // file path related constants
 pub(crate) static APPLICATION_DATA_PATH: LazyLock<PathBuf> = LazyLock::new(|| {

@@ -9,7 +9,9 @@ use super::models::RatatuiApp;
 use super::models::RatatuiEngine;
 use crate::{
     common::{
-        constants::{LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME, TUI_PADDING},
+        constants::{
+            LIBRARY_LIST_SECTION_NAME, LIBRARY_METADATA_SECTION_NAME, TUI_HELP_DOC, TUI_PADDING,
+        },
         models::{book::Book, settings::Bookmarks},
     },
     layout::{basic_layout::models::BasicLayout, layoutize, models::LayoutEngine},
@@ -19,7 +21,10 @@ use crate::{
         paginate,
         utils::pages_offset_to_pg_no,
     },
-    rendering::models::{AppState, RenderApp, RenderingEngine},
+    rendering::{
+        models::{AppState, RenderApp, RenderingEngine},
+        tui_ratatui::utils::{parse_bottom_title, parse_top_title},
+    },
 };
 
 impl<'a> RenderApp for RatatuiApp<'a> {
@@ -29,6 +34,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
         match self.state {
             AppState::Library => self.draw_library(),
             AppState::Reading => self.draw_reader(),
+            AppState::HelpMenu => self.draw_help_menu(),
         }
     }
 
@@ -60,6 +66,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         self.state = AppState::Reading;
                     }
                     KeyCode::Char('q') => self.shutdown()?,
+                    KeyCode::Char('?') => self.state = AppState::HelpMenu,
                     _ => {}
                 },
                 AppState::Reading => {
@@ -100,6 +107,11 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         _ => {}
                     }
                 }
+                AppState::HelpMenu => match key.code {
+                    KeyCode::Backspace => self.state = AppState::Library,
+                    KeyCode::Char('q') => self.shutdown()?,
+                    _ => {}
+                },
             }
         }
         Ok(())
@@ -180,8 +192,8 @@ impl<'a> RatatuiApp<'a> {
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
-                        .title(" Add some books bro 👍 ")
-                        .title_bottom(" Add some books bro 👍 "),
+                        .title(parse_top_title("Add some books bro 👍"))
+                        .title_bottom(parse_bottom_title("Add some books bro 👍")),
                 )
                 .alignment(ratatui::layout::Alignment::Center);
             frame.render_widget(paragraph, frame.area());
@@ -224,7 +236,9 @@ impl<'a> RatatuiApp<'a> {
                     .borders(Borders::ALL)
                     .padding(Padding::uniform(TUI_PADDING as u16))
                     .title(LIBRARY_LIST_SECTION_NAME)
-                    .title_bottom(format!(" Total books: {} ", self.books.len())),
+                    .title_bottom(parse_bottom_title(
+                        format!("Total books: {}", self.books.len()).as_str(),
+                    )),
             );
             frame.render_widget(list, chunks[0]);
 
@@ -235,7 +249,7 @@ impl<'a> RatatuiApp<'a> {
                     Block::default()
                         .borders(Borders::ALL)
                         .padding(Padding::uniform(TUI_PADDING as u16))
-                        .title(LIBRARY_METADATA_SECTION_NAME),
+                        .title(parse_top_title(LIBRARY_METADATA_SECTION_NAME)),
                 )
                 .wrap(ratatui::widgets::Wrap { trim: true });
             frame.render_widget(paragraph, chunks[1]);
@@ -269,10 +283,25 @@ impl<'a> RatatuiApp<'a> {
                 Block::default()
                     .borders(Borders::ALL)
                     .padding(Padding::uniform(TUI_PADDING as u16))
-                    .title(format!(" {} ", book.get_title()))
-                    .title_bottom(format!(" Page: {} / {} ", page_no + 1, total_pages)),
+                    .title(parse_top_title(format!(" {} ", book.get_title()).as_str()))
+                    .title_bottom(parse_bottom_title(
+                        format!("Page: {} / {} |", page_no + 1, total_pages).as_str(),
+                    )),
             );
             frame.render_widget(paragraph, frame.area());
+        })?;
+        Ok(())
+    }
+
+    fn draw_help_menu(&mut self) -> Result<(), std::io::Error> {
+        self.backend.draw(|frame| {
+            let help_block = Paragraph::new(TUI_HELP_DOC).block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .padding(Padding::uniform(TUI_PADDING as u16))
+                    .title(" Welcome to the helpdesk "),
+            );
+            frame.render_widget(help_block, frame.area());
         })?;
         Ok(())
     }

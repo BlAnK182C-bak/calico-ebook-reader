@@ -7,6 +7,7 @@ use crate::{
 pub(crate) enum AppState {
     Library,
     Reading,
+    HelpMenu,
 }
 
 pub(crate) trait RenderApp {
