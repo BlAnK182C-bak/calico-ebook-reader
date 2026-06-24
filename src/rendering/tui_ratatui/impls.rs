@@ -235,7 +235,7 @@ impl<'a> RatatuiApp<'a> {
                 Block::default()
                     .borders(Borders::ALL)
                     .padding(Padding::uniform(TUI_PADDING as u16))
-                    .title(LIBRARY_LIST_SECTION_NAME)
+                    .title(parse_top_title(LIBRARY_LIST_SECTION_NAME))
                     .title_bottom(parse_bottom_title(
                         format!("Total books: {}", self.books.len()).as_str(),
                     )),
@@ -283,7 +283,7 @@ impl<'a> RatatuiApp<'a> {
                 Block::default()
                     .borders(Borders::ALL)
                     .padding(Padding::uniform(TUI_PADDING as u16))
-                    .title(parse_top_title(format!(" {} ", book.get_title()).as_str()))
+                    .title(parse_top_title(book.get_title()))
                     .title_bottom(parse_bottom_title(
                         format!("Page: {} / {} |", page_no + 1, total_pages).as_str(),
                     )),
@@ -299,7 +299,7 @@ impl<'a> RatatuiApp<'a> {
                 Block::default()
                     .borders(Borders::ALL)
                     .padding(Padding::uniform(TUI_PADDING as u16))
-                    .title(" Welcome to the helpdesk "),
+                    .title(parse_top_title("Welcome to the helpdesk")),
             );
             frame.render_widget(help_block, frame.area());
         })?;
