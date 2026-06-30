@@ -2,7 +2,7 @@ use crossterm::event::{Event, KeyCode};
 use ratatui::{
     Terminal,
     prelude::CrosstermBackend,
-    widgets::{Block, Borders, Padding, Paragraph},
+    widgets::{Block, Borders, ListItem, ListState, Padding, Paragraph},
 };
 
 use super::models::RatatuiApp;
@@ -43,12 +43,10 @@ impl<'a> RenderApp for RatatuiApp<'a> {
             match self.state {
                 AppState::Library => match key.code {
                     KeyCode::Down | KeyCode::Char('j') => {
-                        if self.curr_book_idx + 1 < self.books.len() {
-                            self.curr_book_idx += 1;
-                        }
+                        self.list_state.select_next();
                     }
                     KeyCode::Up | KeyCode::Char('k') => {
-                        self.curr_book_idx = self.curr_book_idx.saturating_sub(1);
+                        self.list_state.select_previous();
                     }
                     KeyCode::Enter => {
                         let pages = self.paginate_current_book()?;
@@ -60,7 +58,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                         self.byte_offset = Bookmarks::default()
                             .load_bookmarks()?
                             .get_bookmarks()
-                            .get(self.books[self.curr_book_idx].get_id())
+                            .get(self.books[self.list_state.selected().unwrap_or(0)].get_id())
                             .map(|b| b.get_offset())
                             .unwrap_or(0); // no bookmark found, start from beginning/
                         self.state = AppState::Reading;
@@ -84,7 +82,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let next_page: &Page = &pages[page_no + 1];
                                 self.byte_offset = next_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.list_state.selected().unwrap_or(0)].get_id(),
                                     self.byte_offset,
                                 )?;
                             }
@@ -94,7 +92,7 @@ impl<'a> RenderApp for RatatuiApp<'a> {
                                 let prev_page: &Page = &pages[page_no - 1];
                                 self.byte_offset = prev_page.get_start_offset();
                                 Bookmarks::default().load_bookmarks()?.set_bookmarks(
-                                    self.books[self.curr_book_idx].get_id(),
+                                    self.books[self.list_state.selected().unwrap_or(0)].get_id(),
                                     self.byte_offset,
                                 )?;
                             }
@@ -145,13 +143,15 @@ impl<'a> RenderingEngine<'a> for RatatuiEngine {
             crossterm::terminal::Clear(crossterm::terminal::ClearType::All)
         )?;
         let backend = Terminal::new(CrosstermBackend::new(std::io::stdout()))?;
+        let mut list_state = ListState::default();
+        list_state.select(Some(0));
 
         Ok(RatatuiApp {
             backend,
             state: AppState::Library,
             books,
             curr_book_pages: None,
-            curr_book_idx: 0,
+            list_state,
             should_quit: false,
             byte_offset: 0,
             curr_book_lookup: None,
@@ -176,7 +176,7 @@ impl<'a> RatatuiApp<'a> {
     }
 
     fn paginate_current_book(&mut self) -> Result<Vec<Page>, std::io::Error> {
-        let book = &self.books[self.curr_book_idx];
+        let book = &self.books[self.list_state.selected().unwrap_or(0)];
         let size = self.backend.size()?;
         let layout =
             layoutize::<BasicLayout>(book, ((size.width - 2) as usize) - (2 * TUI_PADDING));
@@ -217,33 +217,23 @@ impl<'a> RatatuiApp<'a> {
                 .split(frame.area());
 
             // book list
-            let items: Vec<ratatui::widgets::ListItem> = books
-                .iter()
-                .enumerate()
-                .map(|(idx, b)| {
-                    let style = if idx == self.curr_book_idx {
-                        ratatui::style::Style::default()
-                            .fg(ratatui::style::Color::Yellow)
-                            .add_modifier(ratatui::style::Modifier::BOLD)
-                    } else {
-                        ratatui::style::Style::default()
-                    };
-                    ratatui::widgets::ListItem::new(b.get_title()).style(style)
-                })
-                .collect();
-            let list = ratatui::widgets::List::new(items).block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .padding(Padding::uniform(TUI_PADDING as u16))
-                    .title(parse_top_title(LIBRARY_LIST_SECTION_NAME))
-                    .title_bottom(parse_bottom_title(
-                        format!("Total books: {}", self.books.len()).as_str(),
-                    )),
-            );
-            frame.render_widget(list, chunks[0]);
+            let items: Vec<ratatui::widgets::ListItem> =
+                books.iter().map(|b| ListItem::new(b.get_title())).collect();
+            let list = ratatui::widgets::List::new(items)
+                .highlight_symbol("▶ ")
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .padding(Padding::uniform(TUI_PADDING as u16))
+                        .title(parse_top_title(LIBRARY_LIST_SECTION_NAME))
+                        .title_bottom(parse_bottom_title(
+                            format!("Total books: {}", self.books.len()).as_str(),
+                        )),
+                );
+            frame.render_stateful_widget(list, chunks[0], &mut self.list_state);
 
             // book metadata section
-            let selected_book = &books[self.curr_book_idx];
+            let selected_book = &books[self.list_state.selected().unwrap_or(0)];
             let paragraph = Paragraph::new(selected_book.get_metadata())
                 .block(
                     Block::default()
@@ -263,7 +253,7 @@ impl<'a> RatatuiApp<'a> {
             return Ok(());
         };
 
-        let book = &self.books[self.curr_book_idx];
+        let book: &Book = &self.books[self.list_state.selected().unwrap_or(0)];
         let pages = self
             .curr_book_pages
             .as_ref()
