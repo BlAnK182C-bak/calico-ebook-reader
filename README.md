@@ -5,6 +5,14 @@ This project aims to be a modern open source alternative to a lot of ebook reade
 
 ## Screenshots
 
+Library: <br>
+<img width="1920" height="1079" alt="image" src="https://github.com/user-attachments/assets/d55ce413-5f4c-4a30-8b8a-9ee624d26185" />
+<br />
+
+Reader:
+<img width="1908" height="1080" alt="image" src="https://github.com/user-attachments/assets/a8a380bb-ef14-4b5f-8b94-5572a4b1bcc1" />
+<br />
+
 ## Releases and current features
 You can go to the [releases](https://github.com/BlAnK182C-bak/calico-ebook-reader/releases/) tab for the latest canary build of this CLI tool.
 
